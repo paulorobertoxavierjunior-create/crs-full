@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRS-FULL — Medidor Acústico ELAYON</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo-area">
+                <h1>🔊 CRS-FULL</h1>
+                <p class="subtitulo">Medidor Acústico Independente ELAYON</p>
+            </div>
+            <div class="status-area">
+                <span id="statusConexao" class="status-badge">● Desconectado</span>
+            </div>
+        </header>
+
+        <!-- PAINEL PRINCIPAL -->
+        <main class="painel-principal">
+            
+            <!-- SEÇÃO: NOVA SESSÃO -->
+            <section class="secao nova-sessao">
+                <h2>📍 Nova Sessão</h2>
+                
+                <div class="formulario">
+                    <div class="campo">
+                        <label for="nomePaciente">Nome do Paciente:</label>
+                        <input type="text" id="nomePaciente" placeholder="Digite o nome do paciente">
+                    </div>
+
+                    <div class="campo">
+                        <label for="idadePaciente">Idade:</label>
+                        <input type="number" id="idadePaciente" placeholder="Ex: 45" min="0" max="150">
+                    </div>
+
+                    <div class="campo">
+                        <label for="contextoTarefa">Contexto da Tarefa:</label>
+                        <select id="contextoTarefa">
+                            <option value="">-- Selecione --</option>
+                            <option value="leitura">Leitura</option>
+                            <option value="nomeacao">Nomeação de figuras</option>
+                            <option value="repeticao">Repetição</option>
+                            <option value="compreensao">Compreensão</option>
+                            <option value="fala-espontanea">Fala espontânea</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="observacoes">Observações:</label>
+                        <textarea id="observacoes" placeholder="Notas adicionais sobre a sessão"></textarea>
+                    </div>
+
+                    <button id="btnIniciarSessao" class="btn btn-primary">▶ Iniciar Sessão</button>
+                </div>
+            </section>
+
+            <!-- SEÇÃO: GRAVADOR -->
+            <section class="secao gravador" id="secaoGravador" style="display: none;">
+                <h2>🎤 Gravação em Andamento</h2>
+                
+                <div class="info-sessao">
+                    <p><strong>Paciente:</strong> <span id="infoPaciente">-</span></p>
+                    <p><strong>Contexto:</strong> <span id="infoContexto">-</span></p>
+                    <p><strong>Duração:</strong> <span id="infoDuracao">00:00</span></p>
+                </div>
+
+                <div class="controles-gravacao">
+                    <button id="btnLigarMicrofone" class="btn btn-success">🔴 Ligar Microfone</button>
+                    <button id="btnDesligarMicrofone" class="btn btn-danger" disabled>⏹ Desligar Microfone</button>
+                </div>
+
+                <div class="visualizador-onda">
+                    <canvas id="canvasOnda" width="600" height="150"></canvas>
+                </div>
+
+                <div class="metricas-tempo-real">
+                    <div class="metrica">
+                        <span class="label">RMS:</span>
+                        <span id="metricaRMS" class="valor">0.00</span>
+                    </div>
+                    <div class="metrica">
+                        <span class="label">Silêncio:</span>
+                        <span id="metricaSilencio" class="valor">0.0s</span>
+                    </div>
+                    <div class="metrica">
+                        <span class="label">Frequência:</span>
+                        <span id="metricaFrequencia" class="valor">0 Hz</span>
+                    </div>
+                </div>
+
+                <button id="btnFinalizarSessao" class="btn btn-secondary">✓ Finalizar Sessão</button>
+            </section>
+
+            <!-- SEÇÃO: HISTÓRICO -->
+            <section class="secao historico">
+                <h2>📋 Histórico de Sessões</h2>
+                <div id="listaHistorico" class="lista-sessoes">
+                    <p class="vazio">Nenhuma sessão registrada ainda.</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- PAINEL DE LOGS -->
+        <aside class="painel-logs">
+            <h3>📊 Logs do Sistema</h3>
+            <div id="containerLogs" class="logs-container">
+                <p class="log-info">Sistema iniciado...</p>
+            </div>
+            <button id="btnLimparLogs" class="btn btn-small">Limpar</button>
+        </aside>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="utils/logger.js"></script>
+    <script src="aplicativo.js"></script>
+</body>
+</html>
