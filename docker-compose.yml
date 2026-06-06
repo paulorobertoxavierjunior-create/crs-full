@@ -14,7 +14,7 @@ services:
     environment:
       - FLASK_APP=main.py
       - FLASK_ENV=development
-      - - DATABASE_URL=postgresql://crs_user:crs_password@postgres:5432/crs_db
+      - DATABASE_URL=postgresql://crs_user:crs_password@postgres:5432/crs_db
       - SECRET_KEY=sua-chave-secreta-desenvolvimento
       - JWT_SECRET_KEY=sua-chave-jwt-desenvolvimento
       - NODE_ENV=development
@@ -49,25 +49,26 @@ services:
   # BANCO DE DADOS – PostgreSQL
   # ============================================================================
   postgres:
-  image: postgres:15-alpine
-  container_name: crs-full-postgres
-  environment:
-    POSTGRES_USER: crs_user
-    POSTGRES_PASSWORD: crs_password
-    POSTGRES_DB: crs_db
-  ports:
-    - "5432:5432"
-  volumes:
-    - postgres_data:/var/lib/postgresql/data
-    - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-  networks:
-    - crs-network
-  healthcheck:
-    test: ["CMD-SHELL", "pg_isready -U crs_user"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
-  restart: unless-stopped
+    image: postgres:15-alpine
+    container_name: crs-full-postgres
+    environment:
+      POSTGRES_USER: crs_user
+      POSTGRES_PASSWORD: crs_password
+      POSTGRES_DB: crs_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - crs-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crs_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # ============================================================================
   # CACHE – Redis
   # ============================================================================
