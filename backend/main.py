@@ -11,7 +11,7 @@ from functools import wraps
 app = Flask(__name__)
 CORS(app)
 
-# Configuração do banco de dados
+# Configuração
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///crs_full.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
 db = SQLAlchemy(app)
 
 # ============================================================================
-# MODELOS DE BANCO DE DADOS
+# MODELOS
 # ============================================================================
 
 class Usuario(db.Model):
@@ -44,7 +44,7 @@ class Sessao(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     nome = db.Column(db.String(255), nullable=True)
     descricao = db.Column(db.Text, nullable=True)
-    duracao = db.Column(db.Integer, nullable=True)  # segundos
+    duracao = db.Column(db.Integer, nullable=True)
     silencio_pct = db.Column(db.Float, default=0)
     hesitacao_pct = db.Column(db.Float, default=0)
     eventos = db.Column(db.Integer, default=0)
@@ -64,63 +64,6 @@ class Sessao(db.Model):
             'eventos': self.eventos,
             'data_criacao': self.data_criacao.isoformat()
         }
-
-# ============================================================================
-# DECORADORES
-# ============================================================================
-
-def token_requerido(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        
-        if 'Authorization' in request.headers:
-            auth_header = request.headers['Authorization']
-            try:
-                token = auth_header.split(" ")[1]
-            except IndexError:
-                return jsonify({'mensagem': 'Token inválido'}), 401
-        
-        if not token:
-            return jsonify({'mensagem': 'Token ausente'}), 401
-        
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            usuario = Usuario.query.get(data['usuario_id'])
-            
-            if not usuario:
-                return jsonify({'mensagem': 'Usuário não encontrado'}), 404
-            
-            request.usuario = usuario
-        except jwt.ExpiredSignatureError:
-            return jsonify({'mensagem': 'Token expirado'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'mensagem': 'Token inválido'}), 401
-        
-        return f(*args, **kwargs)
-    
-    return decorated
-
-# ============================================================================
-# ROTAS DE AUTENTICAÇÃO
-# ============================================================================
-
-@app.route('/api/auth/perfil', methods=['GET'])
-@token_requerido
-def perfil():
-    try:
-        return jsonify({
-            'usuario': {
-                'id': request.usuario.id,
-                'nome': request.usuario.nome,
-                'email': request.usuario.email,
-                'data_criacao': request.usuario.data_criacao.isoformat()
-            }
-        }), 200
-    
-    except Exception as erro:
-        print(f'[CRS-FULL] Erro ao obter perfil: {erro}')
-        return jsonify({'mensagem': 'Erro ao obter perfil'}), 500
 
 # ============================================================================
 # DECORADOR DE AUTENTICAÇÃO
@@ -157,6 +100,115 @@ def token_requerido(f):
         return f(*args, **kwargs)
     
     return decorated
+
+# ============================================================================
+# ROTA RAIZ
+# ============================================================================
+
+@app.route('/')
+def home():
+    return jsonify({
+        'status': 'ok',
+        'message': 'CRS-FULL Backend está rodando!',
+        'version': '1.0.0',
+        'endpoints': {
+            'auth': '/api/auth/registro, /api/auth/login',
+            'sessoes': '/api/sessoes',
+            'metricas': '/api/sessoes/<id>/metricas'
+        }
+    }), 200
+
+# ============================================================================
+# ROTAS DE AUTENTICAÇÃO
+# ============================================================================
+
+@app.route('/api/auth/registro', methods=['POST'])
+def registro():
+    try:
+        dados = request.get_json()
+        
+        if not dados or not dados.get('email') or not dados.get('senha') or not dados.get('nome'):
+            return jsonify({'mensagem': 'Email, senha e nome são obrigatórios'}), 400
+        
+        if Usuario.query.filter_by(email=dados['email']).first():
+            return jsonify({'mensagem': 'Email já cadastrado'}), 409
+        
+        usuario = Usuario(
+            nome=dados['nome'],
+            email=dados['email'],
+            senha=generate_password_hash(dados['senha'])
+        )
+        
+        db.session.add(usuario)
+        db.session.commit()
+        
+        print(f'[CRS-FULL] Novo usuário registrado: {usuario.email}')
+        
+        return jsonify({
+            'mensagem': 'Usuário registrado com sucesso',
+            'usuario': {
+                'id': usuario.id,
+                'nome': usuario.nome,
+                'email': usuario.email
+            }
+        }), 201
+    
+    except Exception as erro:
+        db.session.rollback()
+        print(f'[CRS-FULL] Erro ao registrar: {erro}')
+        return jsonify({'mensagem': 'Erro ao registrar usuário'}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    try:
+        dados = request.get_json()
+        
+        if not dados or not dados.get('email') or not dados.get('senha'):
+            return jsonify({'mensagem': 'Email e senha são obrigatórios'}), 400
+        
+        usuario = Usuario.query.filter_by(email=dados['email']).first()
+        
+        if not usuario or not check_password_hash(usuario.senha, dados['senha']):
+            return jsonify({'mensagem': 'Email ou senha inválidos'}), 401
+        
+        token = jwt.encode({
+            'usuario_id': usuario.id,
+            'email': usuario.email,
+            'exp': datetime.utcnow() + timedelta(hours=24)
+        }, app.config['SECRET_KEY'], algorithm='HS256')
+        
+        print(f'[CRS-FULL] Login bem-sucedido: {usuario.email}')
+        
+        return jsonify({
+            'mensagem': 'Login bem-sucedido',
+            'token': token,
+            'usuario': {
+                'id': usuario.id,
+                'nome': usuario.nome,
+                'email': usuario.email
+            }
+        }), 200
+    
+    except Exception as erro:
+        print(f'[CRS-FULL] Erro ao fazer login: {erro}')
+        return jsonify({'mensagem': 'Erro ao fazer login'}), 500
+
+@app.route('/api/auth/perfil', methods=['GET'])
+@token_requerido
+def perfil():
+    try:
+        return jsonify({
+            'usuario': {
+                'id': request.usuario.id,
+                'nome': request.usuario.nome,
+                'email': request.usuario.email,
+                'data_criacao': request.usuario.data_criacao.isoformat()
+            }
+        }), 200
+    
+    except Exception as erro:
+        print(f'[CRS-FULL] Erro ao obter perfil: {erro}')
+        return jsonify({'mensagem': 'Erro ao obter perfil'}), 500
 
 # ============================================================================
 # ROTAS DE SESSÕES
@@ -322,65 +374,7 @@ def obter_metricas(sessao_id):
         return jsonify({'mensagem': 'Erro ao obter métricas'}), 500
 
 # ============================================================================
-# ROTAS DE LOGS
-# ============================================================================
-
-@app.route('/api/logs', methods=['GET'])
-@token_requerido
-def obter_logs():
-    try:
-        logs = LogSistema.query.filter_by(usuario_id=request.usuario.id).order_by(
-            LogSistema.data_criacao.desc()
-        ).limit(100).all()
-        
-        print(f'[CRS-FULL] Logs obtidos para usuário {request.usuario.id}')
-        
-        return jsonify({
-            'logs': [l.to_dict() for l in logs]
-        }), 200
-    
-    except Exception as erro:
-        print(f'[CRS-FULL] Erro ao obter logs: {erro}')
-        return jsonify({'mensagem': 'Erro ao obter logs'}), 500
-
-# ============================================================================
-# DECORADOR DE AUTENTICAÇÃO
-# ============================================================================
-
-def token_requerido(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        
-        if 'Authorization' in request.headers:
-            auth_header = request.headers['Authorization']
-            try:
-                token = auth_header.split(" ")[1]
-            except IndexError:
-                return jsonify({'mensagem': 'Token inválido'}), 401
-        
-        if not token:
-            return jsonify({'mensagem': 'Token ausente'}), 401
-        
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            usuario = Usuario.query.get(data['usuario_id'])
-            
-            if not usuario:
-                return jsonify({'mensagem': 'Usuário não encontrado'}), 404
-            
-            request.usuario = usuario
-        except jwt.ExpiredSignatureError:
-            return jsonify({'mensagem': 'Token expirado'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'mensagem': 'Token inválido'}), 401
-        
-        return f(*args, **kwargs)
-    
-    return decorated
-
-# ============================================================================
-# INICIALIZAÇÃO DO SERVIDOR
+# INICIALIZAÇÃO
 # ============================================================================
 
 if __name__ == '__main__':
