@@ -1,0 +1,93 @@
+# ============================================================================
+# CRS-FULL — Arquivo de Ignoração Git
+# ============================================================================
+
+# Dependências Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Dependências Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# IDE e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Banco de dados
+*.db
+*.sqlite
+*.sqlite3
+crs_full.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+*.cache
+
+# Arquivos temporários
+tmp/
+temp/
+*.tmp
+
+# Uploads
+uploads/
+media/
+
+# Compilados
+dist/
+build/
+
+# Docker
+.dockerignore
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de teste
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Variáveis sensíveis
+secrets.json
+credentials.json
