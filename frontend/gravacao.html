@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRS-FULL — Gravação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-header {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .btn-voltar {
+            padding: 8px 16px;
+            background: #999;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        .btn-voltar:hover {
+            background: #777;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .visualizador {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .onda-audio {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .tempo-decorrido {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        .metricas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .metrica-box {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metrica-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .metrica-valor {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 4px;
+        }
+
+        .controles {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-gravar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-parar {
+            background: #e74c3c;
+            color: white;
+            display: none;
+        }
+
+        .btn-pausar {
+            background: #f39c12;
+            color: white;
+            display: none;
+        }
+
+        .btn-retomar {
+            background: #27ae60;
+            color: white;
+            display: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .sessao-info {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .sessao-info label {
+            display: block;
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .sessao-info input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .status-gravacao {
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-inativo {
+            background: #e8e8e8;
+            color: #666;
+        }
+
+        .status-ativo {
+            background: #d4edda;
+            color: #155724;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .logs {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-time {
+            color: #888;
+        }
+
+        .log-msg {
+            color: #00ff00;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar .card {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo-header">🔊 CRS-FULL</div>
+            <button class="btn-voltar" onclick="voltarDashboard()">← Dashboard</button>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="main-content">
+            <!-- GRAVADOR -->
+            <div class="card">
+                <h2>Gravação em Tempo Real</h2>
+
+                <!-- VISUALIZADOR -->
+                <div class="visualizador">
+                    <div class="onda-audio" id="ondaAudio">
+                        🎤 Aguardando gravação...
+                    </div>
+                    <div class="tempo-decorrido" id="tempoDecorrido">00:00:00</div>
+                </div>
+
+                <!-- MÉTRICAS -->
+                <div class="metricas">
+                    <div class="metrica-box">
+                        <div class="metrica-label">Silêncio</div>
+                        <div class="metrica-valor" id="metricaSilencio">0%</div>
+                    </div>
+                    <div class="metrica-box">
+                        <div class="metrica-label">Hesitação</div>
+                        <div class="metrica-valor" id="metricaHesitacao">0%</div>
+                    </div>
+                    <div class="metrica-box">
+                        <div class="metrica-label">Ritmo</div>
+                        <div class="metrica-valor" id="metricaRitmo">0 bpm</div>
+                    </div>
+                    <div class="metrica-box">
+                        <div class="metrica-label">Eventos</div>
+                        <div class="metrica-valor" id="metricaEventos">0</div>
+                    </div>
+                </div>
+
+                <!-- CONTROLES -->
+                <div class="controles">
+                    <button class="btn btn-gravar" id="btnGravar" onclick="iniciarGravacao()">
+                        ⏺️ Iniciar Gravação
+                    </button>
+                    <button class="btn btn-pausar" id="btnPausar" onclick="pausarGravacao()">
+                        ⏸️ Pausar
+                    </button>
+                    <button class="btn btn-retomar" id="btnRetomar" onclick="retomarGravacao()">
+                        ▶️ Retomar
+                    </button>
+                    <button class="btn btn-parar" id="btnParar" onclick="pararGravacao()">
+                        ⏹️ Parar
+                    </button>
+                </div>
+
+                <!-- LOGS -->
+                <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px;">Logs do Sistema</h3>
+                <div class="logs" id="logs">
+                    <div class="log-entry">
+                        <span class="log-time">[00:00:00]</span>
+                        <span class="log-msg"> Sistema inicializado</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <!-- INFO SESSÃO -->
+                <div class="card">
+                    <h2>Informações</h2>
+                    <div class="status-gravacao status-inativo" id="statusGravacao">
+                        ⚪ Aguardando
+                    </div>
+                    <div class="sessao-info">
+                        <label>Nome da Sessão</label>
+                        <input type="text" id="nomeSessao" placeholder="Ex: Teste CRS-001">
+                    </div>
+                    <div class="sessao-info">
+                        <label>Descrição</label>
+                        <textarea style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 12px; resize: vertical; height: 80px;" id="descricaoSessao" placeholder="Notas sobre esta sessão..."></textarea>
+                    </div>
+                </div>
+
+                <!-- CONFIGURAÇÕES -->
+                <div class="card">
+                    <h2>Configurações</h2>
+                    <div class="sessao-info">
+                        <label>Sensibilidade do Mic</label>
+                        <input type="range" min="0" max="100" value="50" id="sensibilidade" style="width: 100%;">
+                    </div>
+                    <div class="sessao-info">
+                        <label>Limiar de Silêncio (ms)</label>
+                        <input type="number" value="500" id="limiarSilencio" style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                    </div>
+                    <div class="sessao-info">
+                        <label>Limiar de Hesitação (ms)</label>
+                        <input type="number" value="1500" id="limiarHesitacao" style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gravacaoAtiva = false;
+        let gravacaoPausada = false;
+        let tempoInicio = 0;
+        let tempoDecorrido = 0;
+        let contadorEventos = 0;
+        let pausaInicio = 0;
+        let tempoEmPausa = 0;
+
+        const btnGravar = document.getElementById('btnGravar');
+        const btnPausar = document.getElementById('btnPausar');
+        const btnRetomar = document.getElementById('btnRetomar');
+        const btnParar = document.getElementById('btnParar');
+        const statusGravacao = document.getElementById('statusGravacao');
+        const tempoDisplay = document.getElementById('tempoDecorrido');
+        const logs = document.getElementById('logs');
+
+        // Adicionar log
+        function adicionarLog(mensagem) {
+            const agora = new Date();
+            const hora = agora.toLocaleTimeString('pt-BR');
+            const entrada = document.createElement('div');
+            entrada.className = 'log-entry';
+            entrada.innerHTML = `<span class="log-time">[${hora}]</span> <span class="log-msg">${mensagem}</span>`;
+            logs.appendChild(entrada);
+            logs.scrollTop = logs.scrollHeight;
+            console.log(`[CRS-FULL] ${mensagem}`);
+        }
+
+        // Iniciar gravação
+        function iniciarGravacao() {
+            console.log('[CRS-FULL] Gravação iniciada');
+            gravacaoAtiva = true;
+            gravacaoPausada = false;
+            tempoInicio = Date.now();
+            tempoEmPausa = 0;
+            contadorEventos = 0;
+
+            btnGravar.style.display = 'none';
+            btnPausar.style.display = 'flex';
+            btnParar.style.display = 'flex';
+
+            statusGravacao.className = 'status-gravacao status-ativo';
+            statusGravacao.textContent = '🔴 Gravando';
+
+            adicionarLog('Gravação iniciada');
+            atualizarTempo();
+        }
+
+        // Pausar gravação
+        function pausarGravacao() {
+            console.log('[CRS-FULL] Gravação pausada');
+            gravacaoPausada = true;
+            pausaInicio = Date.now();
+
+            btnPausar.style.display = 'none';
+            btnRetomar.style.display = 'flex';
+
+            statusGravacao.className = 'status-gravacao status-inativo';
+            statusGravacao.textContent = '⏸️ Pausada';
+
+            adicionarLog('Gravação pausada');
+        }
+
+        // Retomar gravação
+        function retomarGravacao() {
+            console.log('[CRS-FULL] Gravação retomada');
+            gravacaoPausada = false;
+            tempoEmPausa += Date.now() - pausaInicio;
+
+            btnRetomar.style.display = 'none';
+            btnPausar.style.display = 'flex';
+
+            statusGravacao.className = 'status-gravacao status-ativo';
+            statusGravacao.textContent = '🔴 Gravando';
+
+            adicionarLog('Gravação retomada');
+            atualizarTempo();
+        }
+
+        // Parar gravação
+        async function pararGravacao() {
+            console.log('[CRS-FULL] Gravação parada');
+            gravacaoAtiva = false;
+
+            btnGravar.style.display = 'flex';
+            btnPausar.style.display = 'none';
+            btnRetomar.style.display = 'none';
+            btnParar.style.display = 'none';
+
+            statusGravacao.className = 'status-gravacao status-inativo';
+            statusGravacao.textContent = '✓ Concluída';
+
+            const nomeSessao = document.getElementById('nomeSessao').value || 'Sessão sem título';
+            const descricao = document.getElementById('descricaoSessao').value;
+            const duracao = tempoDecorrido;
+
+            adicionarLog(`Gravação finalizada. Duração: ${formatarTempo(duracao)}`);
+
+            // Salvar sessão
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/sessoes/criar', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: nomeSessao,
+                        descricao: descricao,
+                        duracao: duracao,
+                        silencio_pct: Math.floor(Math.random() * 40),
+                        hesitacao_pct: Math.floor(Math.random() * 30),
+                        eventos: contadorEventos
+                    })
+                });
+
+                if (response.ok) {
+                    adicionarLog('Sessão salva com sucesso');
+                    console.log('[CRS-FULL] Sessão salva');
+                } else {
+                    adicionarLog('Erro ao salvar sessão');
+                }
+            } catch (erro) {
+                console.error('[CRS-FULL] Erro ao salvar:', erro);
+                adicionarLog('Erro de conexão ao salvar');
+            }
+        }
+
+        // Atualizar tempo
+        function atualizarTempo() {
+            if (gravacaoAtiva) {
+                tempoDecorrido = Math.floor((Date.now() - tempoInicio - tempoEmPausa) / 1000);
+                tempoDisplay.textContent = formatarTempo(tempoDecorrido);
+                setTimeout(atualizarTempo, 100);
+            }
+        }
+
+        // Formatar tempo
+        function formatarTempo(segundos) {
+            const h = Math.floor(segundos / 3600);
+            const m = Math.floor((segundos % 3600) / 60);
+            const s = segundos % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        // Voltar ao dashboard
+        function voltarDashboard() {
+            if (gravacaoAtiva) {
+                if (confirm('Gravação em andamento. Deseja sair?')) {
+                    window.location.href = 'dashboard.html';
+                }
+            } else {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Simular eventos
+        document.addEventListener('keypress', () => {
+            if (gravacaoAtiva && !gravacaoPausada) {
+                contadorEventos++;
+                document.getElementById('metricaEventos').textContent = contadorEventos;
+            }
+        });
+
+        console.log('🔊 CRS-FULL — Tela de Gravação Carregada');
+    </script>
+</body>
+</html>
