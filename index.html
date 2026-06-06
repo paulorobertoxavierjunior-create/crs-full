@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRS-FULL — Medidor Acústico ELAYON</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitulo {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            margin: 30px 0;
+        }
+
+        .opcoes {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cadastro {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-cadastro:hover {
+            background: #f8f9ff;
+            transform: translateY(-2px);
+        }
+
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .info h3 {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .info p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔊</div>
+        
+        <h1>CRS-FULL</h1>
+        <p class="subtitulo">Medidor Acústico Independente ELAYON</p>
+
+        <div class="divider"></div>
+
+        <div class="opcoes">
+            <button class="btn btn-login" onclick="irPara('login')">
+                🔐 Entrar
+            </button>
+            <button class="btn btn-cadastro" onclick="irPara('cadastro')">
+                ✏️ Criar Conta
+            </button>
+        </div>
+
+        <div class="info">
+            <h3>O que é ELAYON?</h3>
+            <p>
+                Um medidor acústico independente que extrai parâmetros de fala em tempo real. 
+                Não diagnostica. Apenas mede. Agnóstico de contexto clínico.
+            </p>
+        </div>
+
+        <div class="status-badge">
+            ● Sistema Online
+        </div>
+
+        <div class="footer">
+            <p>v1.0.0 — Medição Pura, Independente</p>
+            <p style="margin-top: 8px;">© 2024 Paulo Roberto Xavier Júnior</p>
+        </div>
+    </div>
+
+    <script>
+        function irPara(pagina) {
+            console.log(`[CRS-FULL] Navegando para: ${pagina}`);
+            
+            if (pagina === 'login') {
+                window.location.href = 'frontend/login.html';
+            } else if (pagina === 'cadastro') {
+                window.location.href = 'frontend/cadastro.html';
+            }
+        }
+
+        // Log de inicialização
+        console.log('🔊 CRS-FULL — Medidor Acústico ELAYON');
+        console.log('Versão: 1.0.0');
+        console.log('Status: Online');
+        console.log('---');
+        console.log('Filosofia: Medição pura, independente, agnóstica de contexto.');
+        console.log('---');
+    </script>
+</body>
+</html>
