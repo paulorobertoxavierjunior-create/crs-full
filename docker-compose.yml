@@ -14,7 +14,7 @@ services:
     environment:
       - FLASK_APP=main.py
       - FLASK_ENV=development
-      - DATABASE_URL=postgresql://crs_user:crs_password@postgres:5432/crs_db
+      - - DATABASE_URL=postgresql://crs_user:crs_password@postgres:5432/crs_db
       - SECRET_KEY=sua-chave-secreta-desenvolvimento
       - JWT_SECRET_KEY=sua-chave-jwt-desenvolvimento
       - NODE_ENV=development
