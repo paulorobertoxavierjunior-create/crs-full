@@ -1,0 +1,115 @@
+version: '3.9'
+
+services:
+  # ============================================================================
+  # BACKEND — Flask API
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crs-full-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://crs_user:crs_password@postgres:5432/crs_full
+      - SECRET_KEY=sua-chave-secreta-desenvolvimento
+      - JWT_SECRET_KEY=sua-chave-jwt-desenvolvimento
+      - NODE_ENV=development
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app/backend
+    networks:
+      - crs-network
+    command: python main.py
+    restart: unless-stopped
+
+  # ============================================================================
+  # FRONTEND — Nginx
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crs-full-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    networks:
+      - crs-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # BANCO DE DADOS — PostgreSQL
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: crs-full-postgres
+    environment:
+      POSTGRES_USER: crs_user
+      POSTGRES_PASSWORD: crs_password
+      POSTGRES_DB: crs_full
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - crs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crs_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # CACHE — Redis
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: crs-full-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - crs-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # ============================================================================
+  # ADMINER — Gerenciador de BD (Desenvolvimento)
+  # ============================================================================
+  adminer:
+    image: adminer:latest
+    container_name: crs-full-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - crs-network
+    restart: unless-stopped
+
+# ============================================================================
+# VOLUMES
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  crs-network:
+    driver: bridge
