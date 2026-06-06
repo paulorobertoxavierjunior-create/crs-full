@@ -2,12 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copiar package.json e package-lock.json
+COPY package*.json ./
 
-RUN npm install -g http-server && npm install
+# Instalar dependências (incluindo http-server)
+RUN npm install
 
+# Copiar arquivos do frontend
 COPY . .
 
+# Expor porta
 EXPOSE 3000
 
-CMD ["http-server", "-p", "3000", "-c-1"]
+# Comando para rodar
+CMD ["npm", "start"]
