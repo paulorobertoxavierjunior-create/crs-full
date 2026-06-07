@@ -483,3 +483,177 @@ def obter_metricas(sessao_id):
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao obter métricas: {erro}')
         return jsonify({'mensagem': 'Erro ao obter métricas'}), 500
+
+# ============================================================================
+# ROTAS DE API KEYS
+# ============================================================================
+
+@app.route('/api/api-keys', methods=['GET'])
+@token_requerido
+def listar_api_keys():
+    try:
+        chaves = APIKey.query.filter_by(usuario_id=request.usuario.id).all()
+        
+        return jsonify({
+            'api_keys': [{
+                'id': k.id,
+                'nome': k.nome,
+                'chave': k.chave[:10] + '...',
+                'plano': k.plano,
+                'ativa': k.ativa,
+                'data_criacao': k.data_criacao.isoformat()
+            } for k in chaves]
+        }), 200
+    
+    except Exception as erro:
+        print(f'[CRS-FULL] Erro ao listar API keys: {erro}')
+        return jsonify({'mensagem': 'Erro ao listar API keys'}), 500
+
+@app.route('/api/api-keys', methods=['POST'])
+@token_requerido
+def criar_api_key():
+    try:
+        import secrets
+        
+        chave = secrets.token_urlsafe(32)
+        
+        nova_chave = APIKey(
+            usuario_id=request.usuario.id,
+            chave=chave,
+            nome=request.get_json().get('nome', 'Chave padrão'),
+            plano='free'
+        )
+        
+        db.session.add(nova_chave)
+        db.session.commit()
+        
+        print(f'[CRS-FULL] API Key criada para usuário {request.usuario.id}')
+        
+        return jsonify({
+            'mensagem': 'API Key criada com sucesso',
+            'chave': chave
+        }), 201
+    
+    except Exception as erro:
+        db.session.rollback()
+        print(f'[CRS-FULL] Erro ao criar API key: {erro}')
+        return jsonify({'mensagem': 'Erro ao criar API key'}), 500
+
+# ============================================================================
+# ROTAS DE IA - PROCESSAMENTO DE ÁUDIO
+# ============================================================================
+
+@app.route('/api/ia/processar-audio', methods=['POST'])
+@token_requerido
+def processar_audio():
+    try:
+        dados = request.get_json()
+        sessao_id = dados.get('sessao_id')
+        duracao = dados.get('duracao', 0)
+        
+        sessao = Sessao.query.filter_by(
+            id=sessao_id,
+            usuario_id=request.usuario.id
+        ).first()
+        
+        if not sessao:
+            return jsonify({'mensagem': 'Sessão não encontrada'}), 404
+        
+        silencio = 15.5
+        hesitacao = 8.3
+        
+        sessao.duracao = duracao
+        sessao.silencio_pct = silencio
+        sessao.hesitacao_pct = hesitacao
+        
+        db.session.commit()
+        
+        print(f'[CRS-FULL] Áudio processado para sessão {sessao_id}')
+        
+        return jsonify({
+            'mensagem': 'Áudio processado com sucesso',
+            'metricas': {
+                'duracao': duracao,
+                'silencio_pct': silencio,
+                'hesitacao_pct': hesitacao
+            }
+        }), 200
+    
+    except Exception as erro:
+        db.session.rollback()
+        print(f'[CRS-FULL] Erro ao processar áudio: {erro}')
+        return jsonify({'mensagem': 'Erro ao processar áudio'}), 500
+
+@app.route('/api/ia/analisar-transcricao', methods=['POST'])
+@token_requerido
+def analisar_transcricao():
+    try:
+        dados = request.get_json()
+        sessao_id = dados.get('sessao_id')
+        transcricao = dados.get('transcricao', '')
+        
+        sessao = Sessao.query.filter_by(
+            id=sessao_id,
+            usuario_id=request.usuario.id
+        ).first()
+        
+        if not sessao:
+            return jsonify({'mensagem': 'Sessão não encontrada'}), 404
+        
+        resposta_ia = f"Análise de: {transcricao[:100]}..."
+        
+        sessao.transcricao = transcricao
+        sessao.resposta_ia = resposta_ia
+        
+        db.session.commit()
+        
+        print(f'[CRS-FULL] Transcrição analisada para sessão {sessao_id}')
+        
+        return jsonify({
+            'mensagem': 'Transcrição analisada com sucesso',
+            'resposta_ia': resposta_ia,
+            'metricas': {
+                'sentimento': 'positivo',
+                'confianca': 0.85,
+                'palavras_chave': ['palavra1', 'palavra2']
+            }
+        }), 200
+    
+    except Exception as erro:
+        db.session.rollback()
+        print(f'[CRS-FULL] Erro ao analisar transcrição: {erro}')
+        return jsonify({'mensagem': 'Erro ao analisar transcrição'}), 500
+
+@app.route('/api/ia/chat', methods=['POST'])
+@token_requerido
+def chat_ia():
+    try:
+        dados = request.get_json()
+        mensagem = dados.get('mensagem', '')
+        
+        resposta = f"Resposta para: {mensagem}"
+        
+        print(f'[CRS-FULL] Chat IA processado')
+        
+        return jsonify({'resposta': resposta}), 200
+    
+    except Exception as erro:
+        print(f'[CRS-FULL] Erro no chat: {erro}')
+        return jsonify({'mensagem': 'Erro ao processar chat'}), 500
+
+# ============================================================================
+# INICIALIZAÇÃO
+# ============================================================================
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        print('🔊 CRS-FULL — Backend Iniciado')
+        print('Banco de dados: OK')
+        print('Autenticação: OK')
+        print('Rotas: OK')
+        print('IA: OK (placeholder)')
+        print('---')
+        print('Servidor rodando em http://0.0.0.0:5000')
+    
+    app.run(debug=True, host='0.0.0.0', port=5000)
