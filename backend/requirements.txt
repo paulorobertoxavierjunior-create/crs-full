@@ -5,5 +5,5 @@ SQLAlchemy==2.0.19
 PyJWT==2.8.0
 Werkzeug==2.3.6
 python-dotenv==1.0.0
+psycopg2-binary==2.9.6
 gunicorn==21.2.0
-psycopg2-binary==2.9.9
