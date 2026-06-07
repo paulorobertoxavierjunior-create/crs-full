@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRS-FULL — Chat IA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; height: 100vh; display: flex; flex-direction: column; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #667eea; }
+        .btn { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn:hover { background: #764ba2; }
+        .chat-container { flex: 1; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .mensagens { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .mensagem { display: flex; gap: 10px; }
+        .mensagem.usuario { justify-content: flex-end; }
+        .mensagem.ia { justify-content: flex-start; }
+        .bolha { max-width: 70%; padding: 12px 16px; border-radius: 12px; word-wrap: break-word; }
+        .usuario .bolha { background: #667eea; color: white; }
+        .ia .bolha { background: #f0f0f0; color: #333; }
+        .input-area { padding: 20px; border-top: 1px solid #e0e0e0; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; }
+        input:focus { outline: none; border-color: #667eea; }
+        .btn-enviar { padding: 12px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-enviar:hover { background: #764ba2; }
+        .vazio { text-align: center; color: #999; padding: 40px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">💬 CRS-FULL Chat IA</div>
+            <button class="btn" onclick="voltarDashboard()">← Dashboard</button>
+        </div>
+
+        <div class="chat-container">
+            <div class="mensagens" id="mensagens">
+                <div class="vazio">
+                    <p>💬 Bem-vindo ao Chat IA</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Faça perguntas sobre suas sessões de gravação</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="inputMensagem" placeholder="Digite sua pergunta..." onkeypress="if(event.key==='Enter') enviarMensagem()">
+                <button class="btn-enviar" onclick="enviarMensagem()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        function adicionarMensagem(texto, tipo) {
+            const container = document.getElementById('mensagens');
+            const div = document.createElement('div');
+            div.className = `mensagem ${tipo}`;
+            div.innerHTML = `<div class="bolha">${texto}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function enviarMensagem() {
+            const input = document.getElementById('inputMensagem');
+            const texto = input.value.trim();
+            if (!texto) return;
+
+            adicionarMensagem(texto, 'usuario');
+            input.value = '';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/ia/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mensagem: texto })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    adicionarMensagem(data.resposta || 'Resposta recebida', 'ia');
+                } else {
+                    adicionarMensagem('❌ Erro ao processar. Tente novamente.', 'ia');
+                }
+            } catch (erro) {
+                console.error('[CRS-FULL] Erro:', erro);
+                adicionarMensagem('❌ Erro de conexão', 'ia');
+            }
+        }
+
+        function voltarDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+
+        console.log('🔊 CRS-FULL — Chat IA Carregado');
+    </script>
+</body>
+</html>
+
