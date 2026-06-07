@@ -16,7 +16,7 @@ CORS(app, resources={
     }
 })
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crs_full.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crs_full.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
 
