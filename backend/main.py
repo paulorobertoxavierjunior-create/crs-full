@@ -7,7 +7,6 @@ import os
 from datetime import datetime, timedelta
 from functools import wraps
 
-# Inicializar Flask
 app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
@@ -17,27 +16,20 @@ CORS(app, resources={
     }
 })
 
-# Configuração
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///crs_full.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
 
 db = SQLAlchemy(app)
 
-# ============================================================================
-# MODELOS
-# ============================================================================
-
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
-    
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     senha = db.Column(db.String(255), nullable=False)
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     ativo = db.Column(db.Boolean, default=True)
-    
     sessoes = db.relationship('Sessao', backref='usuario', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
@@ -45,7 +37,6 @@ class Usuario(db.Model):
 
 class Sessao(db.Model):
     __tablename__ = 'sessoes'
-    
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     nome = db.Column(db.String(255), nullable=True)
@@ -71,15 +62,10 @@ class Sessao(db.Model):
             'data_criacao': self.data_criacao.isoformat()
         }
 
-# ============================================================================
-# DECORADOR DE AUTENTICAÇÃO
-# ============================================================================
-
 def token_requerido(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             try:
@@ -93,10 +79,8 @@ def token_requerido(f):
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
             usuario = Usuario.query.get(data['usuario_id'])
-            
             if not usuario:
                 return jsonify({'mensagem': 'Usuário não encontrado'}), 404
-            
             request.usuario = usuario
         except jwt.ExpiredSignatureError:
             return jsonify({'mensagem': 'Token expirado'}), 401
@@ -104,12 +88,7 @@ def token_requerido(f):
             return jsonify({'mensagem': 'Token inválido'}), 401
         
         return f(*args, **kwargs)
-    
     return decorated
-
-# ============================================================================
-# ROTA RAIZ
-# ============================================================================
 
 @app.route('/')
 def home():
@@ -124,32 +103,22 @@ def home():
         }
     }), 200
 
-# ============================================================================
-# ROTAS DE AUTENTICAÇÃO
-# ============================================================================
-
 @app.route('/api/auth/registro', methods=['POST'])
 def registro():
     try:
         dados = request.get_json()
-        
         if not dados or not dados.get('email') or not dados.get('senha') or not dados.get('nome'):
             return jsonify({'mensagem': 'Email, senha e nome são obrigatórios'}), 400
-        
         if Usuario.query.filter_by(email=dados['email']).first():
             return jsonify({'mensagem': 'Email já cadastrado'}), 409
-        
         usuario = Usuario(
             nome=dados['nome'],
             email=dados['email'],
             senha=generate_password_hash(dados['senha'])
         )
-        
         db.session.add(usuario)
         db.session.commit()
-        
         print(f'[CRS-FULL] Novo usuário registrado: {usuario.email}')
-        
         return jsonify({
             'mensagem': 'Usuário registrado com sucesso',
             'usuario': {
@@ -158,7 +127,6 @@ def registro():
                 'email': usuario.email
             }
         }), 201
-    
     except Exception as erro:
         db.session.rollback()
         print(f'[CRS-FULL] Erro ao registrar: {erro}')
@@ -168,23 +136,17 @@ def registro():
 def login():
     try:
         dados = request.get_json()
-        
         if not dados or not dados.get('email') or not dados.get('senha'):
             return jsonify({'mensagem': 'Email e senha são obrigatórios'}), 400
-        
         usuario = Usuario.query.filter_by(email=dados['email']).first()
-        
         if not usuario or not check_password_hash(usuario.senha, dados['senha']):
             return jsonify({'mensagem': 'Email ou senha inválidos'}), 401
-        
         token = jwt.encode({
             'usuario_id': usuario.id,
             'email': usuario.email,
             'exp': datetime.utcnow() + timedelta(hours=24)
         }, app.config['SECRET_KEY'], algorithm='HS256')
-        
         print(f'[CRS-FULL] Login bem-sucedido: {usuario.email}')
-        
         return jsonify({
             'mensagem': 'Login bem-sucedido',
             'token': token,
@@ -194,7 +156,6 @@ def login():
                 'email': usuario.email
             }
         }), 200
-    
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao fazer login: {erro}')
         return jsonify({'mensagem': 'Erro ao fazer login'}), 500
@@ -211,28 +172,20 @@ def perfil():
                 'data_criacao': request.usuario.data_criacao.isoformat()
             }
         }), 200
-    
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao obter perfil: {erro}')
         return jsonify({'mensagem': 'Erro ao obter perfil'}), 500
-
-# ============================================================================
-# ROTAS DE SESSÕES
-# ============================================================================
 
 @app.route('/api/sessoes', methods=['GET'])
 @token_requerido
 def listar_sessoes():
     try:
         sessoes = Sessao.query.filter_by(usuario_id=request.usuario.id).all()
-        
         print(f'[CRS-FULL] Sessões listadas para usuário {request.usuario.id}')
-        
         return jsonify({
             'sessoes': [s.to_dict() for s in sessoes],
             'total': len(sessoes)
         }), 200
-    
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao listar sessões: {erro}')
         return jsonify({'mensagem': 'Erro ao listar sessões'}), 500
@@ -245,16 +198,10 @@ def obter_sessao(sessao_id):
             id=sessao_id,
             usuario_id=request.usuario.id
         ).first()
-        
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
-        
         print(f'[CRS-FULL] Sessão obtida: {sessao_id}')
-        
-        return jsonify({
-            'sessao': sessao.to_dict()
-        }), 200
-    
+        return jsonify({'sessao': sessao.to_dict()}), 200
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao obter sessão: {erro}')
         return jsonify({'mensagem': 'Erro ao obter sessão'}), 500
@@ -264,7 +211,6 @@ def obter_sessao(sessao_id):
 def criar_sessao():
     try:
         dados = request.get_json()
-        
         sessao = Sessao(
             usuario_id=request.usuario.id,
             nome=dados.get('nome'),
@@ -274,17 +220,13 @@ def criar_sessao():
             hesitacao_pct=dados.get('hesitacao_pct', 0),
             eventos=dados.get('eventos', 0)
         )
-        
         db.session.add(sessao)
         db.session.commit()
-        
         print(f'[CRS-FULL] Sessão criada: {sessao.id}')
-        
         return jsonify({
             'mensagem': 'Sessão criada com sucesso',
             'sessao': sessao.to_dict()
         }), 201
-    
     except Exception as erro:
         db.session.rollback()
         print(f'[CRS-FULL] Erro ao criar sessão: {erro}')
@@ -298,27 +240,20 @@ def atualizar_sessao(sessao_id):
             id=sessao_id,
             usuario_id=request.usuario.id
         ).first()
-        
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
-        
         dados = request.get_json()
-        
         sessao.nome = dados.get('nome', sessao.nome)
         sessao.descricao = dados.get('descricao', sessao.descricao)
         sessao.duracao = dados.get('duracao', sessao.duracao)
         sessao.silencio_pct = dados.get('silencio_pct', sessao.silencio_pct)
         sessao.hesitacao_pct = dados.get('hesitacao_pct', sessao.hesitacao_pct)
-        
         db.session.commit()
-        
         print(f'[CRS-FULL] Sessão atualizada: {sessao_id}')
-        
         return jsonify({
             'mensagem': 'Sessão atualizada com sucesso',
             'sessao': sessao.to_dict()
         }), 200
-    
     except Exception as erro:
         db.session.rollback()
         print(f'[CRS-FULL] Erro ao atualizar sessão: {erro}')
@@ -332,25 +267,16 @@ def deletar_sessao(sessao_id):
             id=sessao_id,
             usuario_id=request.usuario.id
         ).first()
-        
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
-        
         db.session.delete(sessao)
         db.session.commit()
-        
         print(f'[CRS-FULL] Sessão deletada: {sessao_id}')
-        
         return jsonify({'mensagem': 'Sessão deletada com sucesso'}), 200
-    
     except Exception as erro:
         db.session.rollback()
         print(f'[CRS-FULL] Erro ao deletar sessão: {erro}')
         return jsonify({'mensagem': 'Erro ao deletar sessão'}), 500
-
-# ============================================================================
-# ROTAS DE MÉTRICAS
-# ============================================================================
 
 @app.route('/api/sessoes/<int:sessao_id>/metricas', methods=['GET'])
 @token_requerido
@@ -360,12 +286,9 @@ def obter_metricas(sessao_id):
             id=sessao_id,
             usuario_id=request.usuario.id
         ).first()
-        
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
-        
         print(f'[CRS-FULL] Métricas obtidas para sessão {sessao_id}')
-        
         return jsonify({
             'metricas': {
                 'duracao': sessao.duracao,
@@ -374,14 +297,9 @@ def obter_metricas(sessao_id):
                 'eventos': sessao.eventos
             }
         }), 200
-    
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao obter métricas: {erro}')
         return jsonify({'mensagem': 'Erro ao obter métricas'}), 500
-
-# ============================================================================
-# INICIALIZAÇÃO
-# ============================================================================
 
 if __name__ == '__main__':
     with app.app_context():
