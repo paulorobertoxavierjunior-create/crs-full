@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRS-FULL — Relatório</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .logo { font-size: 24px; font-weight: bold; color: #667eea; }
+        .btn { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn:hover { background: #764ba2; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metrica-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .metrica-valor { font-size: 32px; font-weight: bold; }
+        .metrica-label { font-size: 12px; margin-top: 10px; opacity: 0.9; }
+        .grafico-container { position: relative; height: 300px; margin: 20px 0; }
+        h2 { color: #333; margin-bottom: 15px; font-size: 18px; }
+        h3 { color: #666; margin-bottom: 10px; font-size: 14px; }
+        p { color: #666; line-height: 1.6; }
+        .btn-exportar { background: #27ae60; margin-top: 20px; }
+        .btn-exportar:hover { background: #229954; }
+        @media (max-width: 768px) { .metricas { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📊 CRS-FULL</div>
+            <button class="btn" onclick="voltarDashboard()">← Dashboard</button>
+        </div>
+
+        <div class="card">
+            <h2 id="nomeSessao">Carregando...</h2>
+            <p id="dataSessao" style="color: #999; font-size: 14px;"></p>
+        </div>
+
+        <div class="card">
+            <h3>📈 Métricas Principais</h3>
+            <div class="metricas">
+                <div class="metrica-box">
+                    <div class="metrica-valor" id="silencioVal">0%</div>
+                    <div class="metrica-label">Silêncio</div>
+                </div>
+                <div class="metrica-box">
+                    <div class="metrica-valor" id="hesitacaoVal">0%</div>
+                    <div class="metrica-label">Hesitação</div>
+                </div>
+                <div class="metrica-box">
+                    <div class="metrica-valor" id="duracaoVal">0s</div>
+                    <div class="metrica-label">Duração</div>
+                </div>
+                <div class="metrica-box">
+                    <div class="metrica-valor" id="eventosVal">0</div>
+                    <div class="metrica-label">Eventos</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📊 Distribuição</h3>
+            <div class="grafico-container">
+                <canvas id="graficoDistribuicao"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📝 Descrição</h3>
+            <p id="descricaoSessao">Sem descrição</p>
+        </div>
+
+        <button class="btn btn-exportar" onclick="exportarPDF()">📥 Exportar PDF</button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let grafico;
+
+        function obterIdSessao() {
+            return new URLSearchParams(window.location.search).get('id');
+        }
+
+        async function carregarSessao() {
+            const id = obterIdSessao();
+            if (!id) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/sessoes/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const s = data.sessao;
+
+                    document.getElementById('nomeSessao').textContent = s.nome || 'Sessão sem título';
+                    document.getElementById('dataSessao').textContent = new Date(s.data_criacao).toLocaleDateString('pt-BR');
+                    document.getElementById('silencioVal').textContent = `${s.silencio_pct}%`;
+                    document.getElementById('hesitacaoVal').textContent = `${s.hesitacao_pct}%`;
+                    document.getElementById('duracaoVal').textContent = `${s.duracao}s`;
+                    document.getElementById('eventosVal').textContent = s.eventos;
+                    document.getElementById('descricaoSessao').textContent = s.descricao || 'Sem descrição';
+
+                    criarGrafico(s.silencio_pct, s.hesitacao_pct);
+                }
+            } catch (erro) {
+                console.error('[CRS-FULL] Erro:', erro);
+            }
+        }
+
+        function criarGrafico(silencio, hesitacao) {
+            const ctx = document.getElementById('graficoDistribuicao').getContext('2d');
+            grafico = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Silêncio', 'Hesitação', 'Fala Normal'],
+                    datasets: [{
+                        data: [silencio, hesitacao, 100 - silencio - hesitacao],
+                        backgroundColor: ['#e74c3c', '#f39c12', '#27ae60']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function voltarDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function exportarPDF() {
+            alert('Funcionalidade em desenvolvimento');
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarSessao);
+    </script>
+</body>
+</html>
