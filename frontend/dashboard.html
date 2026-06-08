@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRS-FULL — Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Mantenha os estilos que você já tinha para o dashboard */
         * {
             margin: 0;
             padding: 0;
@@ -14,703 +14,286 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 800px; /* Aumentei um pouco para o dashboard */
             padding: 20px;
         }
 
-        /* ============ HEADER ============ */
-        .header {
+        .dashboard-card { /* Renomeei para evitar conflito com .card de login */
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+        }
+
+        .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            background: white;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
-        .logo-header {
+        .dashboard-header h2 {
+            color: #333;
             font-size: 28px;
-            font-weight: bold;
-            color: #667eea;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .user-name {
+        .logout-btn {
+            background: #ff6b6b;
+            padding: 8px 16px;
             font-size: 14px;
-            color: #666;
-        }
-
-        .btn-logout {
-            padding: 10px 20px;
-            background: #e74c3c;
-            color: white;
+            width: auto;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
+            color: white;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.3s;
+            transition: transform 0.2s;
         }
 
-        .btn-logout:hover {
-            background: #c0392b;
+        .logout-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
         }
 
-        /* ============ FILTROS ============ */
-        .filtros {
-            background: white;
+        .session-form {
+            background: #f9f9f9;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+
+        .session-form h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
         }
 
-        .filtro-input {
-            padding: 10px 15px;
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 13px;
+            border-radius: 5px;
+            font-size: 14px;
             transition: border-color 0.3s;
+            font-family: inherit; /* Para textarea */
         }
 
-        .filtro-input:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
         }
 
-        .btn-filtrar {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .btn-filtrar:hover {
-            background: #764ba2;
-        }
-
-        /* ============ MAIN CONTENT ============ */
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .card h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* ============ BOTÕES ============ */
-        .btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+        button[type="submit"] {
             width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background: #27ae60;
-        }
-
-        .btn-secondary:hover {
-            background: #229954;
-        }
-
-        /* ============ ESTATÍSTICAS ============ */
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
+            padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-numero {
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            margin-top: 8px;
-            opacity: 0.9;
-        }
-
-        /* ============ GRÁFICOS ============ */
-        .grafico-container {
-            position: relative;
-            height: 300px;
-            margin-top: 20px;
-        }
-
-        /* ============ SESSÕES ============ */
-        .sessoes-list {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .sessao-item {
-            padding: 15px;
-            background: #f9f9f9;
-            border-left: 4px solid #667eea;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sessao-item:hover {
-            background: #f0f0f0;
-            transform: translateX(5px);
-        }
-
-        .sessao-info {
-            flex: 1;
-        }
-
-        .sessao-nome {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .sessao-data {
-            font-size: 12px;
-            color: #999;
-            margin-top: 4px;
-        }
-
-        .sessao-metricas {
-            font-size: 11px;
-            color: #666;
-            margin-top: 6px;
-        }
-
-        .sessao-acoes {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-acao {
-            padding: 6px 12px;
-            background: #e0e0e0;
-            color: #333;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 11px;
-            transition: background 0.2s;
+            transition: transform 0.2s;
         }
 
-        .btn-acao:hover {
-            background: #d0d0d0;
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
         }
 
-        .btn-acao.delete {
-            background: #e74c3c;
-            color: white;
+        .sessions-list {
+            margin-top: 30px;
         }
 
-        .btn-acao.delete:hover {
-            background: #c0392b;
-        }
-
-        /* ============ VAZIO ============ */
-        .vazio {
-            text-align: center;
-            color: #999;
-            padding: 40px 20px;
-            font-size: 14px;
-        }
-
-        /* ============ LOADING ============ */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #e0e0e0;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ============ MENSAGENS ============ */
-        .mensagem {
-            padding: 12px;
-            border-radius: 6px;
+        .sessions-list h3 {
+            color: #333;
             margin-bottom: 15px;
-            font-size: 13px;
-            display: none;
         }
 
-        .mensagem.sucesso {
-            display: block;
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        #sessoes-container {
+            max-height: 400px; /* Limita a altura para scroll */
+            overflow-y: auto;
+            padding-right: 10px; /* Espaço para a barra de rolagem */
         }
 
-        .mensagem.erro {
-            display: block;
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .session-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
         }
 
-        /* ============ RESPONSIVE ============ */
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
+        .session-item p {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
         }
 
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .filtros {
-                flex-direction: column;
-            }
-
-            .filtro-input {
-                width: 100%;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-            }
-
-            .sessao-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .sessao-acoes {
-                width: 100%;
-                margin-top: 10px;
-            }
+        .session-item strong {
+            color: #333;
         }
 
-        /* ============ SCROLLBAR ============ */
-        .sessoes-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sessoes-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .sessoes-list::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
-        }
-
-        .sessoes-list::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <!-- HEADER -->
-        <div class="header">
-            <div class="logo-header">🔊 CRS-FULL</div>
-            <div class="user-info">
-                <div class="user-name">Bem-vindo, <span id="nomeUsuario">Usuário</span></div>
-                <button class="btn-logout" onclick="fazerLogout()">Sair</button>
-            </div>
-        </div>
-
-        <!-- MENSAGEM -->
-        <div id="mensagem" class="mensagem"></div>
-
-        <!-- FILTROS -->
-        <div class="filtros">
-            <input type="text" id="filtroNome" class="filtro-input" placeholder="🔍 Buscar por nome...">
-            <input type="date" id="filtroData" class="filtro-input">
-            <button class="btn-filtrar" onclick="aplicarFiltros()">Filtrar</button>
-            <button class="btn-filtrar" style="background: #95a5a6;" onclick="limparFiltros()">Limpar</button>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            <!-- NOVA SESSÃO -->
-            <div class="card">
-                <h2>📝 Nova Sessão</h2>
-                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Inicie uma nova sessão de gravação e análise acústica.</p>
-                <button class="btn" onclick="irParaGravacao()">🎤 Iniciar Gravação</button>
-                <button class="btn btn-secondary" onclick="irParaChat()">💬 Chat com IA</button>
-            </div>
-
-            <!-- ESTATÍSTICAS -->
-            <div class="card">
-                <h2>📊 Estatísticas</h2>
-                <div class="stats">
-                    <div class="stat-box">
-                        <div class="stat-numero" id="totalSessoes">0</div>
-                        <div class="stat-label">Sessões</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-numero" id="totalMinutos">0</div>
-                        <div class="stat-label">Minutos</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-numero" id="silencioMedio">0%</div>
-                        <div class="stat-label">Silêncio Médio</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-numero" id="hesitacaoMedia">0%</div>
-                        <div class="stat-label">Hesitação Média</div>
-                    </div>
+        <div class="dashboard-card">
+            <div class="dashboard-header">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p id="usuario-nome" style="color: #999; font-size: 14px;"></p>
                 </div>
+                <button class="logout-btn" onclick="logout()">Sair</button>
             </div>
-        </div>
 
-        <!-- GRÁFICO -->
-        <div class="card">
-            <h2>📈 Distribuição de Métricas</h2>
-            <div class="grafico-container">
-                <canvas id="graficoMetricas"></canvas>
-            </div>
-        </div>
+            <div class="session-form">
+                <h3>Nova Sessão</h3>
+                <form id="sessao-form">
+                    <div class="form-group">
+                        <label for="sessao-nome">Nome do Paciente</label>
+                        <input type="text" id="sessao-nome" placeholder="Nome do paciente" required>
+                    </div>
 
-        <!-- SESSÕES RECENTES -->
-        <div class="card">
-            <h2>📋 Histórico de Sessões</h2>
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                Carregando sessões...
+                    <div class="form-group">
+                        <label for="sessao-descricao">Observações</label>
+                        <textarea id="sessao-descricao" placeholder="Notas adicionais" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit">Iniciar Sessão</button>
+                </form>
             </div>
-            <div id="listaHistorico" class="sessoes-list">
-                <p class="vazio">Nenhuma sessão registrada ainda.</p>
+
+            <div class="sessions-list">
+                <h3>Histórico de Sessões</h3>
+                <div id="sessoes-container">
+                    <p class="loading">Carregando sessões...</p>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api';
-        let todasSessoes = [];
-        let grafico;
+        // ATENÇÃO: AQUI ESTÁ A CORREÇÃO DA URL DO BACKEND!
+        const API_URL = 'https://crs-full3.onrender.com/api'; 
+        let token = localStorage.getItem('token');
+        let usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
 
-        // ============ AUTENTICAÇÃO ============
-        function verificarAutenticacao() {
-            const token = localStorage.getItem('token');
-            const usuario = localStorage.getItem('usuario');
-
-            if (!token || !usuario) {
-                console.log('[CRS-FULL] Usuário não autenticado. Redirecionando...');
-                window.location.href = 'index.html';
-                return;
-            }
-
-            const dados = JSON.parse(usuario);
-            document.getElementById('nomeUsuario').textContent = dados.nome || 'Usuário';
-            console.log('[CRS-FULL] Usuário autenticado:', dados.email);
+        // Redireciona para login se não houver token
+        if (!token) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('usuario-nome').textContent = `Bem-vindo, ${usuario.nome}!`;
+            carregarSessoes();
         }
 
-        // ============ LOGOUT ============
-        function fazerLogout() {
-            console.log('[CRS-FULL] Logout iniciado');
-            localStorage.removeItem('token');
-            localStorage.removeItem('usuario');
-            window.location.href = 'index.html';
-        }
+        // Criar Sessão
+        document.getElementById('sessao-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        // ============ NAVEGAÇÃO ============
-        function irParaGravacao() {
-            console.log('[CRS-FULL] Navegando para gravação');
-            window.location.href = 'gravacao.html';
-        }
-
-        function irParaChat() {
-            console.log('[CRS-FULL] Navegando para chat');
-            window.location.href = 'chat.html';
-        }
-
-        // ============ CARREGAR SESSÕES ============
-        async function carregarSessoes() {
-            const loading = document.getElementById('loading');
-            const lista = document.getElementById('listaHistorico');
-            const mensagem = document.getElementById('mensagem');
-
-            loading.style.display = 'block';
-            lista.innerHTML = '';
+            const nome = document.getElementById('sessao-nome').value;
+            const descricao = document.getElementById('sessao-descricao').value;
 
             try {
-                const token = localStorage.getItem('token');
                 const response = await fetch(`${API_URL}/sessoes`, {
+                    method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.sessoes && data.sessoes.length > 0) {
-                    console.log('[CRS-FULL] Sessões carregadas:', data.sessoes.length);
-                    todasSessoes = data.sessoes;
-
-                    renderizarSessoes(todasSessoes);
-                    atualizarEstatisticas(todasSessoes);
-                    criarGrafico(todasSessoes);
-                } else {
-                    lista.innerHTML = '<p class="vazio">Nenhuma sessão registrada ainda.</p>';
-                    document.getElementById('totalSessoes').textContent = '0';
-                    document.getElementById('totalMinutos').textContent = '0';
-                    document.getElementById('silencioMedio').textContent = '0%';
-                    document.getElementById('hesitacaoMedia').textContent = '0%';
-                }
-            } catch (erro) {
-                console.error('[CRS-FULL] Erro ao carregar sessões:', erro);
-                mensagem.className = 'mensagem erro';
-                mensagem.textContent = '❌ Erro ao carregar sessões. Tente novamente.';
-                lista.innerHTML = '<p class="vazio">Erro ao carregar sessões.</p>';
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-
-        // ============ RENDERIZAR SESSÕES ============
-        function renderizarSessoes(sessoes) {
-            const lista = document.getElementById('listaHistorico');
-            
-            if (sessoes.length === 0) {
-                lista.innerHTML = '<p class="vazio">Nenhuma sessão encontrada.</p>';
-                return;
-            }
-
-            lista.innerHTML = sessoes.map(sessao => {
-                const duracao = Math.round(sessao.duracao / 60);
-                const data = new Date(sessao.data_criacao).toLocaleDateString('pt-BR');
-
-                return `
-                    <div class="sessao-item">
-                        <div class="sessao-info">
-                            <div class="sessao-nome">${sessao.nome || 'Sessão sem título'}</div>
-                            <div class="sessao-data">📅 ${data}</div>
-                            <div class="sessao-metricas">
-                                ⏱️ ${duracao}min | 🔇 ${sessao.silencio_pct || 0}% | 🎯 ${sessao.hesitacao_pct || 0}%
-                            </div>
-                        </div>
-                        <div class="sessao-acoes">
-                            <button class="btn-acao" onclick="abrirSessao('${sessao.id}')">👁️ Ver</button>
-                            <button class="btn-acao" onclick="editarSessao('${sessao.id}')">✏️ Editar</button>
-                            <button class="btn-acao delete" onclick="deletarSessao('${sessao.id}')">🗑️ Deletar</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ============ ATUALIZAR ESTATÍSTICAS ============
-        function atualizarEstatisticas(sessoes) {
-            const total = sessoes.length;
-            let totalMinutos = 0;
-            let totalSilencio = 0;
-            let totalHesitacao = 0;
-
-            sessoes.forEach(s => {
-                totalMinutos += Math.round(s.duracao / 60);
-                totalSilencio += s.silencio_pct || 0;
-                totalHesitacao += s.hesitacao_pct || 0;
-            });
-
-            const silencioMedio = total > 0 ? Math.round(totalSilencio / total) : 0;
-            const hesitacaoMedia = total > 0 ? Math.round(totalHesitacao / total) : 0;
-
-            document.getElementById('totalSessoes').textContent = total;
-            document.getElementById('totalMinutos').textContent = totalMinutos;
-            document.getElementById('silencioMedio').textContent = `${silencioMedio}%`;
-            document.getElementById('hesitacaoMedia').textContent = `${hesitacaoMedia}%`;
-        }
-
-        // ============ CRIAR GRÁFICO ============
-        function criarGrafico(sessoes) {
-            if (sessoes.length === 0) return;
-
-            const ctx = document.getElementById('graficoMetricas');
-            if (!ctx) return;
-
-            const silencioTotal = sessoes.reduce((sum, s) => sum + (s.silencio_pct || 0), 0);
-            const hesitacaoTotal = sessoes.reduce((sum, s) => sum + (s.hesitacao_pct || 0), 0);
-            const falaTotal = (sessoes.length * 100) - silencioTotal - hesitacaoTotal;
-
-            if (grafico) {
-                grafico.destroy();
-            }
-
-            grafico = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Silêncio', 'Hesitação', 'Fala Normal'],
-                    datasets: [{
-                        data: [silencioTotal, hesitacaoTotal, falaTotal],
-                        backgroundColor: [
-                            '#e74c3c',
-                            '#f39c12',
-                            '#27ae60'
-                        ],
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 15,
-                                font: { size: 12 }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // ============ FILTROS ============
-        function aplicarFiltros() {
-            const nome = document.getElementById('filtroNome').value.toLowerCase();
-            const data = document.getElementById('filtroData').value;
-
-            const filtrados = todasSessoes.filter(sessao => {
-                const nomeMatch = !nome || (sessao.nome || '').toLowerCase().includes(nome);
-                const dataMatch = !data || sessao.data_criacao.startsWith(data);
-                return nomeMatch && dataMatch;
-            });
-
-            renderizarSessoes(filtrados);
-            atualizarEstatisticas(filtrados);
-        }
-
-        function limparFiltros() {
-            document.getElementById('filtroNome').value = '';
-            document.getElementById('filtroData').value = '';
-            renderizarSessoes(todasSessoes);
-            atualizarEstatisticas(todasSessoes);
-        }
-
-        // ============ AÇÕES ============
-        function abrirSessao(id) {
-            console.log('[CRS-FULL] Abrindo sessão:', id);
-            window.location.href = `relatorio.html?id=${id}`;
-        }
-
-        function editarSessao(id) {
-            console.log('[CRS-FULL] Editando sessão:', id);
-            // TODO: Implementar edição
-            alert('Funcionalidade em desenvolvimento');
-        }
-
-        async function deletarSessao(id) {
-            if (!confirm('Tem certeza que deseja deletar esta sessão?')) return;
-
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${API_URL}/sessoes/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    },
+                    body: JSON.stringify({ nome, descricao })
                 });
 
                 if (response.ok) {
-                    console.log('[CRS-FULL] Sessão deletada:', id);
+                    document.getElementById('sessao-form').reset();
                     carregarSessoes();
                 } else {
-                    alert('Erro ao deletar sessão');
+                    // Se o token expirou ou é inválido, redireciona para login
+                    if (response.status === 401 || response.status === 403) {
+                        alert('Sua sessão expirou. Faça login novamente.');
+                        logout();
+                    } else {
+                        alert('Erro ao criar sessão');
+                    }
                 }
             } catch (erro) {
-                console.error('[CRS-FULL] Erro:', erro);
-                alert('Erro ao deletar sessão');
+                alert('Erro de rede: ' + erro.message);
+            }
+        });
+
+        // Carregar Sessões
+        async function carregarSessoes() {
+            const container = document.getElementById('sessoes-container');
+            container.innerHTML = '<p class="loading">Carregando sessões...</p>'; // Mostra loading
+
+            try {
+                const response = await fetch(`${API_URL}/sessoes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.sessoes.length === 0) {
+                        container.innerHTML = '<p style="color: #999;">Nenhuma sessão registrada ainda.</p>';
+                    } else {
+                        container.innerHTML = data.sessoes.map(s => `
+                            <div class="session-item">
+                                <strong>${s.nome || 'Sem nome'}</strong>
+                                <p>📝 ${s.descricao || 'Sem observações'}</p>
+                                <p>⏱️ Duração: ${s.duracao || 'N/A'} segundos</p>
+                                <p>🔇 Silêncio: ${s.silencio_pct}%</p>
+                                <p>📅 ${new Date(s.data_criacao).toLocaleDateString('pt-BR')}</p>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    // Se o token expirou ou é inválido, redireciona para login
+                    if (response.status === 401 || response.status === 403) {
+                        alert('Sua sessão expirou. Faça login novamente.');
+                        logout();
+                    } else {
+                        container.innerHTML = '<p class="error">Erro ao carregar sessões.</p>';
+                        console.error('Erro ao carregar sessões:', data.mensagem || 'Erro desconhecido');
+                    }
+                }
+            } catch (erro) {
+                container.innerHTML = '<p class="error">Erro de rede ao carregar sessões.</p>';
+                console.error('Erro de rede ao carregar sessões:', erro);
             }
         }
 
-        // ============ INICIALIZAR ============
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🔊 CRS-FULL — Dashboard Carregado');
-            verificarAutenticacao();
-            carregarSessoes();
-        });
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            window.location.href = 'login.html'; // Redireciona para a página de login
+        }
     </script>
 </body>
 </html>
