@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRS-FULL — Sistema de Medição Acústica</title>
+    <title>CRS-FULL — Iniciar Simbiose</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Estilos gerais */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,477 +13,64 @@
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            display: none;
-        }
-
-        .card.active {
-            display: block;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #667eea;
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            color: #999;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .toggle-text {
             text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .toggle-text a {
-            color: #667eea;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .toggle-text a:hover {
-            text-decoration: underline;
-        }
-
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        .success {
-            background: #efe;
-            color: #3c3;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .success.show {
-            display: block;
-        }
-
-        .dashboard {
-            display: none;
-        }
-
-        .dashboard.active {
-            display: block;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .dashboard-header h2 {
-            color: #333;
-        }
-
-        .logout-btn {
-            background: #ff6b6b;
-            padding: 8px 16px;
-            font-size: 14px;
-            width: auto;
-        }
-
-        .logout-btn:hover {
-            background: #ff5252;
-        }
-
-        .session-form {
-            background: #f9f9f9;
             padding: 20px;
-            border-radius: 5px;
+        }
+        .container {
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
             margin-bottom: 30px;
         }
-
-        .session-form h3 {
-            color: #333;
-            margin-bottom: 15px;
+        .btn-simbiose {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
-
-        .sessions-list {
-            margin-top: 30px;
+        .btn-simbiose:hover {
+            background: #e0e0e0;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
-
-        .sessions-list h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .session-item {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .session-item p {
-            color: #666;
-            font-size: 14px;
-            margin: 5px 0;
-        }
-
-        .session-item strong {
-            color: #333;
-        }
-
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-size: 14px;
+        .logo-img {
+            max-width: 150px; /* Ajuste conforme o tamanho da sua logo */
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- TELA DE LOGIN -->
-        <div class="card active" id="login-card">
-            <div class="header">
-                <h1>🔊 CRS-FULL</h1>
-                <p>Sistema de Medição Acústica</p>
-            </div>
-
-            <div class="error" id="login-error"></div>
-
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="seu@email.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="login-senha">Senha</label>
-                    <input type="password" id="login-senha" placeholder="Sua senha" required>
-                </div>
-
-                <button type="submit">Entrar</button>
-            </form>
-
-            <div class="toggle-text">
-                Não tem conta? <a onclick="toggleCards()">Criar conta</a>
-            </div>
-        </div>
-
-        <!-- TELA DE REGISTRO -->
-        <div class="card" id="registro-card">
-            <div class="header">
-                <h1>🔊 CRS-FULL</h1>
-                <p>Criar nova conta</p>
-            </div>
-
-            <div class="error" id="registro-error"></div>
-            <div class="success" id="registro-success"></div>
-
-            <form id="registro-form">
-                <div class="form-group">
-                    <label for="registro-nome">Nome completo</label>
-                    <input type="text" id="registro-nome" placeholder="Seu nome" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="registro-email">Email</label>
-                    <input type="email" id="registro-email" placeholder="seu@email.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="registro-senha">Senha</label>
-                    <input type="password" id="registro-senha" placeholder="Mínimo 6 caracteres" required>
-                </div>
-
-                <button type="submit">Criar conta</button>
-            </form>
-
-            <div class="toggle-text">
-                Já tem conta? <a onclick="toggleCards()">Fazer login</a>
-            </div>
-        </div>
-
-        <!-- DASHBOARD -->
-        <div class="dashboard" id="dashboard">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Dashboard</h2>
-                    <p id="usuario-nome" style="color: #999; font-size: 14px;"></p>
-                </div>
-                <button class="logout-btn" onclick="logout()">Sair</button>
-            </div>
-
-            <div class="session-form">
-                <h3>Nova Sessão</h3>
-                <form id="sessao-form">
-                    <div class="form-group">
-                        <label for="sessao-nome">Nome do Paciente</label>
-                        <input type="text" id="sessao-nome" placeholder="Nome do paciente" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sessao-descricao">Observações</label>
-                        <textarea id="sessao-descricao" placeholder="Notas adicionais" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 14px; font-family: inherit;" rows="3"></textarea>
-                    </div>
-
-                    <button type="submit">Iniciar Sessão</button>
-                </form>
-            </div>
-
-            <div class="sessions-list">
-                <h3>Histórico de Sessões</h3>
-                <div id="sessoes-container">
-                    <p class="loading">Carregando sessões...</p>
-                </div>
-            </div>
-        </div>
+        <img src="IMG-20260503-WA0018.jpg" alt="Logo CRS-FULL" class="logo-img">
+        <h1>CRS-FULL</h1>
+        <p>
+            Bem-vindo ao espaço de escuta simbólica e tecnologias sensíveis.
+            Aqui, o silêncio é informação. Descubra uma nova dimensão na interação humano-máquina,
+            onde pausas e ritmos revelam a essência da comunicação.
+        </p>
+        <a href="login.html" class="btn-simbiose">Iniciar Simbiose</a>
     </div>
-
-    <script>
-        const API_URL = 'http://localhost:5000/api';
-        let token = localStorage.getItem('token');
-        let usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-
-        // Inicializar
-        if (token) {
-            mostrarDashboard();
-        }
-
-        // Toggle entre login e registro
-        function toggleCards() {
-            document.getElementById('login-card').classList.toggle('active');
-            document.getElementById('registro-card').classList.toggle('active');
-            limparErros();
-        }
-
-        // Limpar mensagens de erro
-        function limparErros() {
-            document.getElementById('login-error').classList.remove('show');
-            document.getElementById('registro-error').classList.remove('show');
-            document.getElementById('registro-success').classList.remove('show');
-        }
-
-        // REGISTRO
-        document.getElementById('registro-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            limparErros();
-
-            const nome = document.getElementById('registro-nome').value;
-            const email = document.getElementById('registro-email').value;
-            const senha = document.getElementById('registro-senha').value;
-
-            try {
-                const response = await fetch(`${API_URL}/auth/registro`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, email, senha })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('registro-success').textContent = '✅ Conta criada com sucesso! Faça login.';
-                    document.getElementById('registro-success').classList.add('show');
-                    document.getElementById('registro-form').reset();
-                    setTimeout(() => toggleCards(), 2000);
-                } else {
-                    throw new Error(data.mensagem || 'Erro ao registrar');
-                }
-            } catch (erro) {
-                document.getElementById('registro-error').textContent = '❌ ' + erro.message;
-                document.getElementById('registro-error').classList.add('show');
-            }
-        });
-
-        // LOGIN
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            limparErros();
-
-            const email = document.getElementById('login-email').value;
-            const senha = document.getElementById('login-senha').value;
-
-            try {
-                const response = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    token = data.token;
-                    usuario = data.usuario;
-                    localStorage.setItem('token', token);
-                    localStorage.setItem('usuario', JSON.stringify(usuario));
-                    mostrarDashboard();
-                } else {
-                    throw new Error(data.mensagem || 'Erro ao fazer login');
-                }
-            } catch (erro) {
-                document.getElementById('login-error').textContent = '❌ ' + erro.message;
-                document.getElementById('login-error').classList.add('show');
-            }
-        });
-
-        // Mostrar Dashboard
-        function mostrarDashboard() {
-            document.getElementById('login-card').classList.remove('active');
-            document.getElementById('registro-card').classList.remove('active');
-            document.getElementById('dashboard').classList.add('active');
-            document.getElementById('usuario-nome').textContent = `Bem-vindo, ${usuario.nome}!`;
-            carregarSessoes();
-        }
-
-        // Criar Sessão
-        document.getElementById('sessao-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const nome = document.getElementById('sessao-nome').value;
-            const descricao = document.getElementById('sessao-descricao').value;
-
-            try {
-                const response = await fetch(`${API_URL}/sessoes`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ nome, descricao })
-                });
-
-                if (response.ok) {
-                    document.getElementById('sessao-form').reset();
-                    carregarSessoes();
-                } else {
-                    alert('Erro ao criar sessão');
-                }
-            } catch (erro) {
-                alert('Erro: ' + erro.message);
-            }
-        });
-
-        // Carregar Sessões
-        async function carregarSessoes() {
-            try {
-                const response = await fetch(`${API_URL}/sessoes`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                const data = await response.json();
-                const container = document.getElementById('sessoes-container');
-
-                if (data.sessoes.length === 0) {
-                    container.innerHTML = '<p style="color: #999;">Nenhuma sessão registrada ainda.</p>';
-                } else {
-                    container.innerHTML = data.sessoes.map(s => `
-                        <div class="session-item">
-                            <strong>${s.nome || 'Sem nome'}</strong>
-                            <p>📝 ${s.descricao || 'Sem observações'}</p>
-                            <p>⏱️ Duração: ${s.duracao || 'N/A'} segundos</p>
-                            <p>🔇 Silêncio: ${s.silencio_pct}%</p>
-                            <p>📅 ${new Date(s.data_criacao).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                    `).join('');
-                }
-            } catch (erro) {
-                console.error('Erro ao carregar sessões:', erro);
-            }
-        }
-
-        // Logout
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('usuario');
-            token = null;
-            usuario = {};
-            document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('login-card').classList.add('active');
-            document.getElementById('login-form').reset();
-            limparErros();
-        }
-    </script>
 </body>
-</html> 
+</html>
