@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRS-FULL — Login</title>
     <style>
+        /* Mantenha os estilos que você já tinha, eles são bons! */
+        /* Certifique-se de que os estilos para .card, .card.active, .dashboard, etc. estejam aqui */
         * {
             margin: 0;
             padding: 0;
@@ -16,18 +18,26 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
-            padding: 20px;
+            align-items: center;
         }
 
         .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
             width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 40px;
+            display: none; /* Por padrão, oculto */
+        }
+
+        .card.active {
+            display: block; /* Ativa o card */
         }
 
         .header {
@@ -35,20 +45,15 @@
             margin-bottom: 30px;
         }
 
-        .logo {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        h1 {
-            color: #333;
-            font-size: 24px;
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
             margin-bottom: 5px;
         }
 
-        .subtitulo {
+        .header p {
             color: #999;
-            font-size: 12px;
+            font-size: 14px;
         }
 
         .form-group {
@@ -67,7 +72,7 @@
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 6px;
+            border-radius: 5px;
             font-size: 14px;
             transition: border-color 0.3s;
         }
@@ -77,170 +82,223 @@
             border-color: #667eea;
         }
 
-        .btn {
+        button {
             width: 100%;
             padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
-            margin-bottom: 12px;
         }
 
-        .btn:hover {
+        button:hover {
             transform: translateY(-2px);
         }
 
-        .btn:active {
+        button:active {
             transform: translateY(0);
         }
 
-        .link-cadastro {
+        .toggle-text {
             text-align: center;
-            color: #667eea;
+            margin-top: 20px;
+            color: #666;
             font-size: 14px;
-            text-decoration: none;
-            cursor: pointer;
         }
 
-        .link-cadastro:hover {
+        .toggle-text a {
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .toggle-text a:hover {
             text-decoration: underline;
         }
 
-        .mensagem {
+        .error {
+            background: #fee;
+            color: #c33;
             padding: 12px;
-            border-radius: 6px;
+            border-radius: 5px;
             margin-bottom: 20px;
             font-size: 14px;
             display: none;
         }
 
-        .mensagem.erro {
-            background: #ffebee;
-            color: #c62828;
+        .error.show {
             display: block;
         }
 
-        .mensagem.sucesso {
-            background: #e8f5e9;
-            color: #2e7d32;
-            display: block;
-        }
-
-        .loading {
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
             display: none;
-            text-align: center;
-            color: #667eea;
-            font-size: 12px;
-            margin-top: 10px;
         }
 
-        .spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #667eea;
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-right: 6px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .success.show {
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">🔊</div>
-            <h1>CRS-FULL</h1>
-            <p class="subtitulo">Medidor Acústico ELAYON</p>
+        <!-- TELA DE LOGIN -->
+        <div class="card active" id="login-card">
+            <div class="header">
+                <h1>🔊 CRS-FULL</h1>
+                <p>Sistema de Medição Acústica</p>
+            </div>
+
+            <div class="error" id="login-error"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-senha">Senha</label>
+                    <input type="password" id="login-senha" placeholder="Sua senha" required>
+                </div>
+
+                <button type="submit">Entrar</button>
+            </form>
+
+            <div class="toggle-text">
+                Não tem conta? <a onclick="toggleCards()">Criar conta</a>
+            </div>
         </div>
 
-        <div id="mensagem" class="mensagem"></div>
-
-        <form id="formLogin">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="seu@email.com">
+        <!-- TELA DE REGISTRO -->
+        <div class="card" id="registro-card">
+            <div class="header">
+                <h1>🔊 CRS-FULL</h1>
+                <p>Criar nova conta</p>
             </div>
 
-            <div class="form-group">
-                <label for="senha">Senha</label>
-                <input type="password" id="senha" name="senha" required placeholder="••••••••">
+            <div class="error" id="registro-error"></div>
+            <div class="success" id="registro-success"></div>
+
+            <form id="registro-form">
+                <div class="form-group">
+                    <label for="registro-nome">Nome completo</label>
+                    <input type="text" id="registro-nome" placeholder="Seu nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registro-email">Email</label>
+                    <input type="email" id="registro-email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registro-senha">Senha</label>
+                    <input type="password" id="registro-senha" placeholder="Mínimo 6 caracteres" required>
+                </div>
+
+                <button type="submit">Criar conta</button>
+            </form>
+
+            <div class="toggle-text">
+                Já tem conta? <a onclick="toggleCards()">Fazer login</a>
             </div>
-
-            <button type="submit" class="btn">Entrar</button>
-
-            <div class="loading" id="loading">
-                <span class="spinner"></span>Processando...
-            </div>
-        </form>
-
-        <p style="text-align: center; color: #999; font-size: 14px; margin-top: 20px;">
-            Não tem conta? <a href="cadastro.html" class="link-cadastro">Cadastre-se aqui</a>
-        </p>
+        </div>
     </div>
 
     <script>
-        const form = document.getElementById('formLogin');
-        const mensagem = document.getElementById('mensagem');
-        const loading = document.getElementById('loading');
+        // ATENÇÃO: AQUI ESTÁ A CORREÇÃO DA URL DO BACKEND!
+        const API_URL = 'https://crs-full3.onrender.com/api'; 
+        
+        // Verifica se já existe um token e redireciona para o dashboard se sim
+        if (localStorage.getItem('token')) {
+            window.location.href = 'dashboard.html'; // Redireciona para o dashboard
+        }
 
-        form.addEventListener('submit', async (e) => {
+        // Toggle entre login e registro
+        function toggleCards() {
+            document.getElementById('login-card').classList.toggle('active');
+            document.getElementById('registro-card').classList.toggle('active');
+            limparMensagens();
+        }
+
+        // Limpar mensagens de erro/sucesso
+        function limparMensagens() {
+            document.getElementById('login-error').classList.remove('show');
+            document.getElementById('registro-error').classList.remove('show');
+            document.getElementById('registro-success').classList.remove('show');
+        }
+
+        // REGISTRO
+        document.getElementById('registro-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            limparMensagens();
 
-            const email = document.getElementById('email').value;
-            const senha = document.getElementById('senha').value;
-
-            console.log('[CRS-FULL] Login iniciado para:', email);
-
-            loading.style.display = 'block';
-            mensagem.className = 'mensagem';
+            const nome = document.getElementById('registro-nome').value;
+            const email = document.getElementById('registro-email').value;
+            const senha = document.getElementById('registro-senha').value;
 
             try {
-                const response = await fetch('/api/auth/login', {
+                const response = await fetch(`${API_URL}/auth/registro`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('registro-success').textContent = '✅ Conta criada com sucesso! Faça login.';
+                    document.getElementById('registro-success').classList.add('show');
+                    document.getElementById('registro-form').reset();
+                    setTimeout(() => toggleCards(), 2000); // Volta para o login após 2 segundos
+                } else {
+                    throw new Error(data.mensagem || 'Erro ao registrar');
+                }
+            } catch (erro) {
+                document.getElementById('registro-error').textContent = '❌ ' + erro.message;
+                document.getElementById('registro-error').classList.add('show');
+            }
+        });
+
+        // LOGIN
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            limparMensagens();
+
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, senha })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    console.log('[CRS-FULL] Login bem-sucedido');
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('usuario', JSON.stringify(data.usuario));
-                    
-                    mensagem.className = 'mensagem sucesso';
-                    mensagem.textContent = 'Login bem-sucedido! Redirecionando...';
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
+                    window.location.href = 'dashboard.html'; // Redireciona para o dashboard
                 } else {
-                    console.error('[CRS-FULL] Erro de login:', data.mensagem);
-                    mensagem.className = 'mensagem erro';
-                    mensagem.textContent = data.mensagem || 'Erro ao fazer login';
+                    throw new Error(data.mensagem || 'Erro ao fazer login');
                 }
             } catch (erro) {
-                console.error('[CRS-FULL] Erro de conexão:', erro);
-                mensagem.className = 'mensagem erro';
-                mensagem.textContent = 'Erro de conexão. Tente novamente.';
-            } finally {
-                loading.style.display = 'none';
+                document.getElementById('login-error').textContent = '❌ ' + erro.message;
+                document.getElementById('login-error').classList.add('show');
             }
         });
-
-        console.log('🔊 CRS-FULL — Tela de Login Carregada');
     </script>
 </body>
 </html>
