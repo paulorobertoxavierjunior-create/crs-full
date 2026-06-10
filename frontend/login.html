@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRS-FULL — Login</title>
     <style>
-        /* Mantenha os estilos que você já tinha, eles são bons! */
-        /* Certifique-se de que os estilos para .card, .card.active, .dashboard, etc. estejam aqui */
         * {
             margin: 0;
             padding: 0;
@@ -33,11 +31,11 @@
             border-radius: 10px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 40px;
-            display: none; /* Por padrão, oculto */
+            display: none;
         }
 
         .card.active {
-            display: block; /* Ativa o card */
+            display: block;
         }
 
         .header {
@@ -120,34 +118,6 @@
         .toggle-text a:hover {
             text-decoration: underline;
         }
-
-        .error {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        .success {
-            background: #efe;
-            color: #3c3;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .success.show {
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -158,8 +128,6 @@
                 <h1>🔊 CRS-FULL</h1>
                 <p>Sistema de Medição Acústica</p>
             </div>
-
-            <div class="error" id="login-error"></div>
 
             <form id="login-form">
                 <div class="form-group">
@@ -187,9 +155,6 @@
                 <p>Criar nova conta</p>
             </div>
 
-            <div class="error" id="registro-error"></div>
-            <div class="success" id="registro-success"></div>
-
             <form id="registro-form">
                 <div class="form-group">
                     <label for="registro-nome">Nome completo</label>
@@ -216,89 +181,29 @@
     </div>
 
     <script>
-        // ATENÇÃO: AQUI ESTÁ A CORREÇÃO DA URL DO BACKEND!
-        const API_URL = 'https://crs-full3.onrender.com/api'; 
+        // Avanço Rápido: Login Aberto para Testes e Treinamento
         
-        // Verifica se já existe um token e redireciona para o dashboard se sim
-        if (localStorage.getItem('token')) {
-            window.location.href = 'dashboard.html'; // Redireciona para o dashboard
-        }
+        // Se clicar em Entrar no formulário de Login, vai direto
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            localStorage.setItem('token', 'modo-treinamento-ativo');
+            localStorage.setItem('usuario', JSON.stringify({ email: 'usuario.treinamento@elayon.com' }));
+            window.location.href = 'dashboard.html';
+        });
 
-        // Toggle entre login e registro
+        // Se clicar em Criar Conta no formulário de Registro, também vai direto
+        document.getElementById('registro-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            localStorage.setItem('token', 'modo-treinamento-ativo');
+            localStorage.setItem('usuario', JSON.stringify({ email: 'usuario.treinamento@elayon.com' }));
+            window.location.href = 'dashboard.html';
+        });
+
+        // Toggle simples entre as telas para não quebrar o visual
         function toggleCards() {
             document.getElementById('login-card').classList.toggle('active');
             document.getElementById('registro-card').classList.toggle('active');
-            limparMensagens();
         }
-
-        // Limpar mensagens de erro/sucesso
-        function limparMensagens() {
-            document.getElementById('login-error').classList.remove('show');
-            document.getElementById('registro-error').classList.remove('show');
-            document.getElementById('registro-success').classList.remove('show');
-        }
-
-        // REGISTRO
-        document.getElementById('registro-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            limparMensagens();
-
-            const nome = document.getElementById('registro-nome').value;
-            const email = document.getElementById('registro-email').value;
-            const senha = document.getElementById('registro-senha').value;
-
-            try {
-                const response = await fetch(`${API_URL}/auth/registro`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, email, senha })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('registro-success').textContent = '✅ Conta criada com sucesso! Faça login.';
-                    document.getElementById('registro-success').classList.add('show');
-                    document.getElementById('registro-form').reset();
-                    setTimeout(() => toggleCards(), 2000); // Volta para o login após 2 segundos
-                } else {
-                    throw new Error(data.mensagem || 'Erro ao registrar');
-                }
-            } catch (erro) {
-                document.getElementById('registro-error').textContent = '❌ ' + erro.message;
-                document.getElementById('registro-error').classList.add('show');
-            }
-        });
-
-        // LOGIN
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            limparMensagens();
-
-            const email = document.getElementById('login-email').value;
-            const senha = document.getElementById('login-senha').value;
-
-            try {
-                const response = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('usuario', JSON.stringify(data.usuario));
-                    window.location.href = 'dashboard.html'; // Redireciona para o dashboard
-                } else {
-                    throw new Error(data.mensagem || 'Erro ao fazer login');
-                }
-            } catch (erro) {
-                document.getElementById('login-error').textContent = '❌ ' + erro.message;
-                document.getElementById('login-error').classList.add('show');
-            }
-        });
     </script>
 </body>
 </html>
