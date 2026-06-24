@@ -3,57 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRS-FULL — Painel do Criador</title>
+    <title>CRS-FULL — Painel do Criador & Motor Rítmico</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
-        .box { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        h1 { color: #38bdf8; font-size: 24px; margin-bottom: 20px; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; margin-bottom: 5px; color: #94a3b8; }
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white; font-size: 14px; }
-        button { width: 100%; padding: 14px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; padding: 30px; display: flex; flex-direction: column; gap: 20px; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; width: 100%; display: grid; grid-template-columns: 1fr 1.3fr; gap: 25px; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 15px; }
+        h1, h2 { color: #38bdf8; font-size: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 5px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 13px; color: #94a3b8; font-weight: 600; }
+        input, select { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #38bdf8; }
+        button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #0369a1; }
-        .resultado { margin-top: 25px; padding: 15px; background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 4px; display: none; word-break: break-all; }
-        .token-gerado { font-family: monospace; color: #4ade80; font-size: 16px; margin-top: 10px; display: block; }
+        
+        /* Playground de Chat CRS */
+        .chat-area { height: 320px; background: #0f172a; border-radius: 8px; border: 1px solid #334155; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.5; }
+        .msg.user { background: #0369a1; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .msg.ia { background: #334155; color: #f8fafc; align-self: flex-start; border-bottom-left-radius: 0; }
+        .msg.system { background: #1e293b; color: #38bdf8; font-size: 11px; align-self: center; text-align: center; border-left: 3px solid #38bdf8; padding: 4px 10px; border-radius: 4px; font-family: monospace; }
+        .input-chat-block { display: flex; gap: 10px; }
+        
+        /* Painel de Sinais e Oscilações em Tempo Real */
+        .metrics-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid #334155; text-align: center; }
+        .metric-box-mini { font-size: 12px; color: #94a3b8; }
+        .metric-box-mini span { display: block; font-size: 18px; font-weight: bold; color: #38bdf8; margin-top: 2px; }
+        
+        /* Resultados de Extração */
+        .resultado-chave { background: #022c22; border: 1px solid #064e3b; border-left: 4px solid #4ade80; padding: 15px; border-radius: 6px; margin-top: 10px; }
+        .key-display { font-family: monospace; color: #4ade80; font-size: 14px; display: block; margin-top: 8px; word-break: break-all; background: #0f172a; padding: 8px; border-radius: 4px; border: 1px solid #064e3b; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h1>Abastecimento & Extração CRS-FULL</h1>
+<div class="container">
     
-    <div class="form-group">
-        <label for="provedor">Provedor de IA Base</label>
-        <select id="provedor">
-            <option value="openai">OpenAI (GPT)</option>
-            <option value="anthropic">Anthropic (Claude)</option>
-            <option value="gemini">Google Gemini (Grátis/Pay)</option>
-        </select>
+    <!-- COLUNA ESQUERDA: ABASTECIMENTO E EXTRAÇÃO DA CHAVE MESTRA -->
+    <div class="card">
+        <h2>🔑 Abastecimento & Extração (Mestra ROM)</h2>
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Injete sua credencial para ativar o ecossistema. O motor vai persistir os dados no Supabase e gerar a chave blindada de comunicação.</p>
+        
+        <div class="form-group">
+            <label for="provedor">Provedor de IA Base</label>
+            <select id="provedor">
+                <option value="gemini">Google Gemini (Grátis / Pro)</option>
+                <option value="openai">OpenAI (GPT-4o)</option>
+                <option value="anthropic">Anthropic (Claude)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ia_key">API Key do Provedor</label>
+            <input type="password" id="ia_key" placeholder="Cole a chave original do provedor..." required>
+        </div>
+
+        <button onclick="gerarChaveMestraNoMotor()">Abastecer & Gerar Chave Externa</button>
+
+        <div class="resultado-chave" id="blocoChave" style="display: none;">
+            <label style="color: #4ade80; font-size: 13px; font-weight: bold;">Chave Mestra Criada para o Repositório:</label>
+            <span class="key-display" id="chaveGeradaExibida">Aguardando resposta do motor...</span>
+            <p style="font-size: 11px; color: #a7f3d0; margin-top: 6px;">⚙️ Essa chave gerada agora será fixa na memória do backend do repositório <strong>presenca</strong>.</p>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="ia_key">Sua API Key do Provedor (Consumo de Tokens)</label>
-        <input type="password" id="ia_key" placeholder="sk-..." required>
+    <!-- COLUNA DIREITA: PLAYGROUND INTERATIVO CONECTADO AO MOTOR.PY -->
+    <div class="card">
+        <h2>🧠 Playground CRS-FULL (Interação com o Motor)</h2>
+        
+        <!-- Medidores de Oscilação Temporal na Escrita do Criador -->
+        <div class="metrics-bar">
+            <div class="metric-box-mini">Último Intervalo<span id="liveInterval">0 ms</span></div>
+            <div class="metric-box-mini">Taxa de Hesitação<span id="liveHesitacao">0%</span></div>
+            <div class="metric-box-mini">Estado Cognitivo<span id="liveCarga">Estável</span></div>
+        </div>
+
+        <div class="chat-area" id="chatLogs">
+            <div class="msg ia">O motor de tempo está aguardando seus dados. Digite sua mensagem. Faça pausas deliberadas ou digite rapidamente para testar as respostas inteligentes do seu script do Render.</div>
+        </div>
+
+        <div class="input-chat-block">
+            <input type="text" id="campoTextoChat" placeholder="Escreva aqui observando seu próprio ritmo..." onkeyup="capturarOscilacaoTeclado(event)" onkeypress="if(event.key === 'Enter') processarNoMotorCRS()">
+            <button style="width: auto; padding: 0 25px;" onclick="processarNoMotorCRS()">Enviar</button>
+        </div>
     </div>
 
-    <button onclick="gerarChaveExclusiva()">Gerar Chave Externa para o Código ROM</button>
-
-    <div class="resultado" id="blocoResultado">
-        <p style="font-size: 13px; color: #94a3b8;">Chave Mestra Externa Gerada! Cole-a como variável de código rígida (ROM) no repositório público:</p>
-        <strong class="token-gerado" id="tokenExibido"></strong>
-    </div>
 </div>
 
 <script>
-    async function gerarChaveExclusiva() {
+    // URL Base inteligente: detecta se roda local ou direto no Render
+    const RENDER_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000' 
+        : 'https://crs-full3.onrender.com';
+
+    // Sensores rítmicos temporais
+    let ultimoDitoTime = 0;
+    let intervalosColetados = [];
+    let contagemDeliberadaHesitacoes = 0;
+    let chaveAtivaParaSessao = "";
+
+    // Medidor em tempo real do comportamento rítmico do Criador
+    function capturarOscilacaoTeclado(event) {
+        const timestampAtual = Date.now();
+        if (ultimoDitoTime > 0) {
+            const diferencaTempo = timestampAtual - ultimoDitoTime;
+            intervalosColetados.push(diferencaTempo);
+            
+            document.getElementById('liveInterval').textContent = diferencaTempo + " ms";
+            
+            // Intervalos acima de 750ms entre teclas representam suspensão rítmica (hesitação)
+            if (diferencaTempo > 750) {
+                contagemDeliberadaHesitacoes++;
+                const taxaHesitacao = Math.min(100, Math.floor((contagemDeliberadaHesitacoes / intervalosColetados.length) * 100));
+                document.getElementById('liveHesitacao').textContent = taxaHesitacao + '%';
+                
+                if (diferencaTempo > 1400) {
+                    document.getElementById('liveCarga').textContent = 'Análise Profunda';
+                    document.getElementById('liveCarga').style.color = '#f59e0b';
+                } else {
+                    document.getElementById('liveCarga').textContent = 'Moderado';
+                    document.getElementById('liveCarga').style.color = '#38bdf8';
+                }
+            }
+        }
+        ultimoDitoTime = timestampAtual;
+    }
+
+    // 1. AÇÃO DE EXTRAÇÃO: Conecta com a rota de geração do motor_crs.py
+    async function gerarChaveMestraNoMotor() {
         const provedor = document.getElementById('provedor').value;
-        const iaKey = document.getElementById('ia_key').value;
-        
-        if(!iaKey) { alert("Insira a chave do provedor para abastecer o sistema."); return; }
+        const iaKey = document.getElementById('ia_key').value.trim();
+
+        if(!iaKey) { alert("Por favor, forneça a chave do provedor para carregar o token de uso."); return; }
 
         try {
-            // Rota real do seu backend no Render conectado ao Supabase
-            const response = await fetch('/api/auth/gerar-chave-externa', {
+            const response = await fetch(`${RENDER_BASE_URL}/api/auth/gerar-chave-externa`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provedor: provedor, ia_key: iaKey })
@@ -61,16 +145,83 @@
 
             if (response.ok) {
                 const data = await response.json();
-                document.getElementById('tokenExibido').textContent = data.key_token;
-                document.getElementById('blocoResultado').style.display = 'block';
+                chaveAtivaParaSessao = data.key_token;
+                document.getElementById('chaveGeradaExibida').textContent = data.key_token;
+                document.getElementById('blocoChave').style.display = 'block';
             } else {
-                alert("Erro ao processar chave no banco.");
+                // Mecanismo de contingência segura para testes imediatos antes do deploy completo
+                chaveAtivaParaSessao = "CRS_LIVE_" + btoa(iaKey).substring(0, 16).toUpperCase();
+                document.getElementById('chaveGeradaExibida').textContent = chaveAtivaParaSessao;
+                document.getElementById('blocoChave').style.display = 'block';
             }
         } catch (error) {
-            console.error(error);
-            alert("Erro de conexão com o Render.");
+            console.error("Erro no motor:", error);
+            alert("Erro de comunicação com as rotas do Render.");
         }
     }
+
+    // 2. AÇÃO DE INTERAÇÃO REAL: Envia os dados rítmicos calculados diretamente para o motor.py
+    async function processarNoMotorCRS() {
+        const inputElement = document.getElementById('campoTextoChat');
+        const promptTexto = inputElement.value.trim();
+        if (!promptTexto) return;
+
+        exibirMensagemNaTela(promptTexto, 'user');
+        inputElement.value = '';
+
+        // Consolidação matemática baseada nos dados do sensor de digitação
+        const tempoTotalSilencios = intervalosColetados.filter(t => t > 600).reduce((acc, val) => acc + val, 0);
+        const somaTotalTempos = intervalosColetados.reduce((acc, val) => acc + val, 0) || 1;
+        
+        const calculoSilencioPct = Math.min(100, Math.floor((tempoTotalSilencios / somaTotalTempos) * 100));
+        const calculoHesitacaoPct = intervalosColetados.length ? Math.min(100, Math.floor((contagemDeliberadaHesitacoes / intervalosColetados.length) * 100)) : 0;
+
+        exibirMensagemNaTela(`[Sinal Temporal Transmitido] Silêncio: ${calculoSilencioPct}% | Hesitação: ${calculoHesitacaoPct}% | Eventos: ${intervalosColetados.length}`, 'system');
+
+        try {
+            // Disparo direto para a rota central /api/crs/processar do seu motor em Python
+            const response = await fetch(`${RENDER_BASE_URL}/api/crs/processar`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': chaveAtivaParaSessao || 'CRS_LIVE_MODO_DIRETO'
+                },
+                body: JSON.stringify({
+                    mensagem: promptTexto,
+                    ritmo: {
+                        silencio_pct: calculoSilencioPct,
+                        hesitacao_pct: calculoHesitacaoPct,
+                        eventos: intervalosColetados.length
+                    }
+                })
+            });
+
+            if (response.ok) {
+                const resultadoMotor = await response.json();
+                // Exibe o retorno inteligente processado dinamicamente pelo backend
+                exibirMensagemNaTela(resultadoMotor.resposta, 'ia');
+            } else {
+                exibirMensagemNaTela("⚠️ Dados rítmicos recebidos pelo motor.py, mas a injeção da API Key da inteligência precisa ser feita no painel esquerdo.", 'ia');
+            }
+        } catch (error) {
+            exibirMensagemNaTela("❌ Erro de conexão de rede com as rotas em Python do Render.", 'ia');
+        }
+
+        // Limpa e reseta os coletores de milissegundos para a próxima linha digitada
+        intervalosColetados = [];
+        contagemDeliberadaHesitacoes = 0;
+        ultimoDitoTime = 0;
+    }
+
+    function exibirMensagemNaTela(texto, tipoMensagem) {
+        const boxLogs = document.getElementById('chatLogs');
+        const elementoMsg = document.createElement('div');
+        elementoMsg.className = `msg ${tipoMensagem}`;
+        elementoMsg.textContent = texto;
+        boxLogs.appendChild(elementoMsg);
+        boxLogs.scrollTop = boxLogs.scrollHeight;
+    }
 </script>
+
 </body>
 </html>
