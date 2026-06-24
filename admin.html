@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRS-FULL — Painel do Criador</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
+        .box { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        h1 { color: #38bdf8; font-size: 24px; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 14px; margin-bottom: 5px; color: #94a3b8; }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white; font-size: 14px; }
+        button { width: 100%; padding: 14px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #0369a1; }
+        .resultado { margin-top: 25px; padding: 15px; background: #0f172a; border-left: 4px solid #38bdf8; border-radius: 4px; display: none; word-break: break-all; }
+        .token-gerado { font-family: monospace; color: #4ade80; font-size: 16px; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>Abastecimento & Extração CRS-FULL</h1>
+    
+    <div class="form-group">
+        <label for="provedor">Provedor de IA Base</label>
+        <select id="provedor">
+            <option value="openai">OpenAI (GPT)</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="gemini">Google Gemini (Grátis/Pay)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="ia_key">Sua API Key do Provedor (Consumo de Tokens)</label>
+        <input type="password" id="ia_key" placeholder="sk-..." required>
+    </div>
+
+    <button onclick="gerarChaveExclusiva()">Gerar Chave Externa para o Código ROM</button>
+
+    <div class="resultado" id="blocoResultado">
+        <p style="font-size: 13px; color: #94a3b8;">Chave Mestra Externa Gerada! Cole-a como variável de código rígida (ROM) no repositório público:</p>
+        <strong class="token-gerado" id="tokenExibido"></strong>
+    </div>
+</div>
+
+<script>
+    async function gerarChaveExclusiva() {
+        const provedor = document.getElementById('provedor').value;
+        const iaKey = document.getElementById('ia_key').value;
+        
+        if(!iaKey) { alert("Insira a chave do provedor para abastecer o sistema."); return; }
+
+        try {
+            // Rota real do seu backend no Render conectado ao Supabase
+            const response = await fetch('/api/auth/gerar-chave-externa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provedor: provedor, ia_key: iaKey })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('tokenExibido').textContent = data.key_token;
+                document.getElementById('blocoResultado').style.display = 'block';
+            } else {
+                alert("Erro ao processar chave no banco.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro de conexão com o Render.");
+        }
+    }
+</script>
+</body>
+</html>
