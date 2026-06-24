@@ -2,9 +2,12 @@ import os
 import json
 import time
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # Garante que o front consiga conversar sem travar
+import google.generativeai as genai
 from supabase import create_client, Client
 
 app = Flask(__name__)
+CORS(app) # Libera requisições vindas do GitHub Pages e Localhost
 
 # Conexão Real com a Infraestrutura (Variáveis de Ambiente do Render)
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -47,36 +50,55 @@ class MotorCognitivoCRS:
         }
 
 # ROTA CENTRAL: Recebe do index do 'presenca' e devolve a resposta inteligente
-@app.route("/api/crs/processar", method=["POST"])
+@app.route("/api/crs/processar", methods=["POST"])
 def processar_interacao_crs():
-    dados = request.json
+    dados = request.json or {}
     mensagem_usuario = dados.get("mensagem")
     sinais_tempo = dados.get("ritmo", {})
-    chave_api_externa = request.headers.get("Authorization") # CRS_LIVE_...
+    
+    # Captura a API Key externa enviada pelo painel (pode vir no header ou no payload)
+    chave_api_externa = request.headers.get("Authorization") or dados.get("api_key_externa")
 
     if not mensagem_usuario:
         return jsonify({"error": "Mensagem vazia"}), 400
 
-    # 1. Validação da Chave e Desconto de Tokens no Supabase
-    # (Opcional neste estágio de teste, mas estruturado no banco)
-    
-    # 2. Executa a leitura e configuração rítmica através do Motor
+    if not chave_api_externa or len(chave_api_externa.strip()) < 10:
+        return jsonify({"error": "API Key do Gemini inválida ou ausente no painel."}), 400
+
+    # 1. Configura o Motor Cognitivo CRS
     analise = MotorCognitivoCRS.calcular_vetor_ritmo(sinais_tempo)
     
-    # 3. Engenharia de Prompt Dinâmica (Injetando a diretriz temporal na IA)
-    system_prompt = f"Você é uma inteligência sensível ao ritmo cognitivo humano. Diretriz de Cadência Atual: {analise['diretriz']}"
-    
-    # [Aqui entra a chamada real para o provedor injetado no admin (Gemini/OpenAI)]
-    # Exemplo conceitual de retorno processado pelo Render:
-    resposta_ia = f"[Modo Sensível: Carga {analise['carga']}] Entendi seu comando. Processando com base na sua cadência temporal..."
+    # 2. Conexão Real com o Gemini e Engenharia de Prompt Rítmica
+    try:
+        # Força o SDK a ignorar rotas beta instáveis do Render e usar a API v1 estável
+        os.environ["GOOGLE_API_VERSION"] = "v1"
+        genai.configure(api_key=chave_api_externa.replace("Bearer ", "").strip())
+        
+        prompt_sistema = (
+            f"Você é o agente central Elayon CRS integrado ao painel simbiótico. "
+            f"Sua cognição foi sintonizada ao ritmo do emissor. "
+            f"Diretriz de Cadência Atual: {analise['diretriz']}"
+        )
+        
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config={"temperature": 0.7},
+            system_instruction=prompt_sistema
+        )
+        
+        response = model.generate_content(mensagem_usuario)
+        resposta_ia = response.text
 
-    # 4. Registra os resultados no Supabase para análise gráfica do Criador
+    except Exception as gemini_err:
+        return jsonify({"error": f"Erro na conexão com o Gemini: {str(gemini_err)}"}), 500
+
+    # 3. Registra os resultados no Supabase para análise gráfica do Criador
     if supabase:
         try:
             supabase.table("crs_consumo_metricas").insert({
                 "silencio_pct": sinais_tempo.get("silencio_pct", 0),
                 "hesitacao_pct": sinais_tempo.get("hesitacao_pct", 0),
-                "tokens_consumidos": len(mensagem_usuario.split()) * 2 # Estimativa simples
+                "tokens_consumidos": len(mensagem_usuario.split()) * 2 
             }).execute()
         except Exception as e:
             print(f"Erro ao salvar métricas no banco: {e}")
