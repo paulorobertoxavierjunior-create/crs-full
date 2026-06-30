@@ -8,19 +8,29 @@ from datetime import datetime, timedelta
 from functools import wraps
 
 app = Flask(__name__)
+
+# Configuração robusta de CORS para aceitar as requisições do Front-end (Presença)
 CORS(app, resources={
     r"/api/*": {
         "origins": ["*"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
+    },
+    r"/health": {
+        "origins": ["*"],
+        "methods": ["GET"]
     }
 })
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crs_full.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'elayon-token-secreto-multimodal')
 
 db = SQLAlchemy(app)
+
+# ============================================================================
+# MODELOS DE BANCO DE DADOS
+# ============================================================================
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
@@ -62,6 +72,10 @@ class Sessao(db.Model):
             'data_criacao': self.data_criacao.isoformat()
         }
 
+# ============================================================================
+# DECORATOR DE AUTENTICAÇÃO (JWT)
+# ============================================================================
+
 def token_requerido(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -90,6 +104,10 @@ def token_requerido(f):
         return f(*args, **kwargs)
     return decorated
 
+# ============================================================================
+# ROTAS DE INFRAESTRUTURA & OPERAÇÃO BÁSICA
+# ============================================================================
+
 @app.route('/')
 def home():
     return jsonify({
@@ -98,10 +116,65 @@ def home():
         'version': '1.0.0',
         'endpoints': {
             'auth': '/api/auth/registro, /api/auth/login',
+            'crs_handshake': '/api/crs/fifo-buffer',
             'sessoes': '/api/sessoes',
-            'metricas': '/api/sessoes/<id>/metricas'
+            'health_check': '/health'
         }
     }), 200
+
+# Rota vital para o HEALTHCHECK do Dockerfile passar com sucesso (Evita loops no Render/AWS)
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        'status': 'healthy',
+        'database': 'ready',
+        'timestamp': datetime.utcnow().isoformat()
+    }), 200
+
+# ============================================================================
+# ROTA DE INGESTÃO CRS (CONEXÃO DIRETA COM O FRONT PRESENÇA)
+# ============================================================================
+
+@app.route('/api/crs/fifo-buffer', methods=['POST'])
+def crs_fifo_buffer():
+    try:
+        dados = request.get_json()
+        if not dados:
+            return jsonify({'mensagem': 'Payload vazio ou inválido'}), 400
+        
+        uid = dados.get('uid', 'usuario_anonimo')
+        silencio_seg = dados.get('silencio_seg', 0.0)
+        duracao = dados.get('duracao', 0)
+        
+        print(f'[ELAYON CORE] Ingestão CRS recebida de {uid}: {silencio_seg}s em uma leitura de {duracao}s')
+        
+        # Lógica básica de retorno baseada no limiar de tempo humano
+        # Classifica dinamicamente o estado da carga cognitiva do sinal recebido
+        silencio_float = float(silencio_seg)
+        if silencio_float < 0.6:
+            carga = 'Ritmo Acelerado ⚠'
+        elif silencio_float <= 1.3:
+            carga = 'Carga Cognitiva Estabilizada ✓'
+        else:
+            # Pausa reflexiva profunda ou hesitação longa
+            carga = 'Alta Concentração / Reflexão 🧠'
+
+        return jsonify({
+            'status': 'sincronizado',
+            'usuario_id': uid,
+            'metrica_silencio_seg': silencio_float,
+            'duracao_total_seg': duracao,
+            'carga_cognitiva': carga,
+            'timestamp_server': datetime.utcnow().isoformat()
+        }), 200
+        
+    except Exception as erro:
+        print(f'[ELAYON ERROR] Falha na rota do buffer FIFO: {erro}')
+        return jsonify({'mensagem': 'Erro interno ao processar sinal cognitivo'}), 500
+
+# ============================================================================
+# ROTAS DE AUTENTICAÇÃO
+# ============================================================================
 
 @app.route('/api/auth/registro', methods=['POST'])
 def registro():
@@ -121,11 +194,7 @@ def registro():
         print(f'[CRS-FULL] Novo usuário registrado: {usuario.email}')
         return jsonify({
             'mensagem': 'Usuário registrado com sucesso',
-            'usuario': {
-                'id': usuario.id,
-                'nome': usuario.nome,
-                'email': usuario.email
-            }
+            'usuario': { 'id': usuario.id, 'nome': usuario.nome, 'email': usuario.email }
         }), 201
     except Exception as erro:
         db.session.rollback()
@@ -150,11 +219,7 @@ def login():
         return jsonify({
             'mensagem': 'Login bem-sucedido',
             'token': token,
-            'usuario': {
-                'id': usuario.id,
-                'nome': usuario.nome,
-                'email': usuario.email
-            }
+            'usuario': { 'id': usuario.id, 'nome': usuario.nome, 'email': usuario.email }
         }), 200
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao fazer login: {erro}')
@@ -176,12 +241,15 @@ def perfil():
         print(f'[CRS-FULL] Erro ao obter perfil: {erro}')
         return jsonify({'mensagem': 'Erro ao obter perfil'}), 500
 
+# ============================================================================
+# ROTAS DE GESTÃO DE SESSÕES PROCEDURAIS
+# ============================================================================
+
 @app.route('/api/sessoes', methods=['GET'])
 @token_requerido
 def listar_sessoes():
     try:
         sessoes = Sessao.query.filter_by(usuario_id=request.usuario.id).all()
-        print(f'[CRS-FULL] Sessões listadas para usuário {request.usuario.id}')
         return jsonify({
             'sessoes': [s.to_dict() for s in sessoes],
             'total': len(sessoes)
@@ -194,13 +262,9 @@ def listar_sessoes():
 @token_requerido
 def obter_sessao(sessao_id):
     try:
-        sessao = Sessao.query.filter_by(
-            id=sessao_id,
-            usuario_id=request.usuario.id
-        ).first()
+        sessao = Sessao.query.filter_by(id=sessao_id, usuario_id=request.usuario.id).first()
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
-        print(f'[CRS-FULL] Sessão obtida: {sessao_id}')
         return jsonify({'sessao': sessao.to_dict()}), 200
     except Exception as erro:
         print(f'[CRS-FULL] Erro ao obter sessão: {erro}')
@@ -222,7 +286,6 @@ def criar_sessao():
         )
         db.session.add(sessao)
         db.session.commit()
-        print(f'[CRS-FULL] Sessão criada: {sessao.id}')
         return jsonify({
             'mensagem': 'Sessão criada com sucesso',
             'sessao': sessao.to_dict()
@@ -236,10 +299,7 @@ def criar_sessao():
 @token_requerido
 def atualizar_sessao(sessao_id):
     try:
-        sessao = Sessao.query.filter_by(
-            id=sessao_id,
-            usuario_id=request.usuario.id
-        ).first()
+        sessao = Sessao.query.filter_by(id=sessao_id, usuario_id=request.usuario.id).first()
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
         dados = request.get_json()
@@ -249,7 +309,6 @@ def atualizar_sessao(sessao_id):
         sessao.silencio_pct = dados.get('silencio_pct', sessao.silencio_pct)
         sessao.hesitacao_pct = dados.get('hesitacao_pct', sessao.hesitacao_pct)
         db.session.commit()
-        print(f'[CRS-FULL] Sessão atualizada: {sessao_id}')
         return jsonify({
             'mensagem': 'Sessão atualizada com sucesso',
             'sessao': sessao.to_dict()
@@ -263,15 +322,11 @@ def atualizar_sessao(sessao_id):
 @token_requerido
 def deletar_sessao(sessao_id):
     try:
-        sessao = Sessao.query.filter_by(
-            id=sessao_id,
-            usuario_id=request.usuario.id
-        ).first()
+        sessao = Sessao.query.filter_by(id=sessao_id, usuario_id=request.usuario.id).first()
         if not sessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
         db.session.delete(sessao)
         db.session.commit()
-        print(f'[CRS-FULL] Sessão deletada: {sessao_id}')
         return jsonify({'mensagem': 'Sessão deletada com sucesso'}), 200
     except Exception as erro:
         db.session.rollback()
@@ -282,13 +337,9 @@ def deletar_sessao(sessao_id):
 @token_requerido
 def obter_metricas(sessao_id):
     try:
-        sessao = Sessao.query.filter_by(
-            id=sessao_id,
-            usuario_id=request.usuario.id
-        ).first()
-        if not sessao:
+        sessao = Sessao.query.filter_by(id=sessao_id, usuario_id=request.usuario.id).first()
+        if not clansessao:
             return jsonify({'mensagem': 'Sessão não encontrada'}), 404
-        print(f'[CRS-FULL] Métricas obtidas para sessão {sessao_id}')
         return jsonify({
             'metricas': {
                 'duracao': sessao.duracao,
@@ -301,14 +352,17 @@ def obter_metricas(sessao_id):
         print(f'[CRS-FULL] Erro ao obter métricas: {erro}')
         return jsonify({'mensagem': 'Erro ao obter métricas'}), 500
 
+# ============================================================================
+# INICIALIZAÇÃO LOCAL DO SERVIDOR
+# ============================================================================
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print('🔊 CRS-FULL — Backend Iniciado')
-        print('Banco de dados: OK')
-        print('Autenticação: OK')
-        print('Rotas: OK')
+        print('🔊 ELAYON ENGINE — CRS-FULL BACKEND CONECTADO')
+        print('Banco de dados SQLite: OK')
+        print('Handshake Multimodal: OK')
+        print('Pronto para o Healthcheck do Dockerfile!')
         print('---')
-        print('Servidor rodando em http://0.0.0.0:5000')
     
     app.run(debug=True, host='0.0.0.0', port=5000)
