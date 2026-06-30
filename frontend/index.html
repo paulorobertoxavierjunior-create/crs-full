@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRS-FULL — Iniciar Simbiose</title>
+    <title>CRS-FULL — Laboratório Core</title>
     <style>
-        /* Estilos gerais */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -16,61 +15,220 @@
             color: white;
             text-align: center;
             padding: 20px;
+            margin: 0;
         }
         .container {
-            max-width: 600px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            max-width: 650px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px rgba(255, 255, 255, 0.1) solid;
         }
         h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #a78bfa;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
-        p {
-            font-size: 1.2em;
-            line-height: 1.6;
-            margin-bottom: 30px;
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin-bottom: 25px;
+            color: #34d399;
+            font-size: 0.9em;
         }
-        .btn-simbiose {
-            display: inline-block;
-            padding: 15px 30px;
-            background: white;
-            color: #764ba2;
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .btn {
+            padding: 15px 25px;
             border: none;
             border-radius: 50px;
-            font-size: 1.2em;
+            font-size: 1em;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        .btn-simbiose:hover {
-            background: #e0e0e0;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        .btn-start { background-color: #10b981; color: white; }
+        .btn-start:hover { background-color: #059669; transform: translateY(-2px); }
+        .btn-stop { background-color: #ef4444; color: white; }
+        .btn-stop:hover { background-color: #dc2626; transform: translateY(-2px); }
+        .btn:disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; transform: none; }
+        
+        .visualizer-container {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .pulse-wave {
+            width: 15px;
+            height: 15px;
+            background: #a78bfa;
+            border-radius: 50%;
+            display: none;
+        }
+        .recording .pulse-wave {
+            display: block;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.4; box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.7); }
+            100% { transform: scale(2.5); opacity: 1; box-shadow: 0 0 15px 5px rgba(167, 139, 250, 0); }
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            color: #e2e8f0;
         }
         .logo-img {
-            max-width: 150px; /* Ajuste conforme o tamanho da sua logo */
-            margin-bottom: 20px;
+            max-width: 100px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 2px solid #a78bfa;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="IMG-20260503-WA0018.jpg" alt="Logo CRS-FULL" class="logo-img">
-        <h1>CRS-FULL</h1>
-        <p>
-            Bem-vindo ao espaço de escuta simbólica e tecnologias sensíveis.
-            Aqui, o silêncio é informação. Descubra uma nova dimensão na interação humano-máquina,
-            onde pausas e ritmos revelam a essência da comunicação.
-        </p>
-        <a href="login.html" class="btn-simbiose">Iniciar Simbiose</a>
+    <div class="container" id="app">
+        <img src="IMG-20260503-WA0018.jpg" alt="Logo CRS" class="logo-img" onerror="this.style.display='none'">
+        <h1>CRS-FULL Core Lab</h1>
+        
+        <div class="status-box" id="statusRede">
+            Detectando infraestrutura local...
+        </div>
+
+        <div class="visualizer-container" id="visualizer">
+            <div class="pulse-wave"></div>
+            <span id="visualizerText">Microfone Ocioso</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-start" id="btnIniciar">Iniciar Captação</button>
+            <button class="btn btn-stop" id="btnEncerrar" disabled>Encerrar & Processar</button>
+        </div>
+
+        <h3 style="text-align: left; color: #a78bfa; margin-bottom: 5px;">Mecanismo de Retorno (Relatório CRS):</h3>
+        <div class="output-box" id="output">
+            Aguardando inicialização do fluxo de fonação...
+        </div>
     </div>
+
+    <script>
+        // 🔮 Inteligência de Rede Dinâmica (Funciona no PC e no Celular sem alterar código)
+        const IP_ATUAL = window.location.hostname;
+        const PORTA_BACKEND = "5000";
+        const URL_BACKEND = `http://${IP_ATUAL}:${PORTA_BACKEND}/api/crs/fifo-buffer`;
+        
+        document.getElementById('statusRede').innerText = `🔗 Conectado ao Motor: http://${IP_ATUAL}:${PORTA_BACKEND}`;
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let startTime;
+
+        const btnIniciar = document.getElementById('btnIniciar');
+        const btnEncerrar = document.getElementById('btnEncerrar');
+        const visualizer = document.getElementById('visualizer');
+        const visualizerText = document.getElementById('visualizerText');
+        const output = document.getElementById('output');
+
+        // Inicializar captura do microfone
+        btnIniciar.addEventListener('click', async () => {
+            audioChunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    output.innerHTML = "<span style='color: #f59e0b;'>⏳ Enviando payload temporal ao motor local...</span>";
+                    
+                    // Simulação das métricas de oscilação e silêncio capturadas no período
+                    const tempoTotal = ((Date.now() - startTime) / 1000).toFixed(2);
+                    
+                    const payloadCRS = {
+                        usuario: "paulo_dev_mode",
+                        duracao_sessao_segundos: parseFloat(tempoTotal),
+                        timestamp_captura: new Date().toISOString(),
+                        // O core backend receberá os dados estruturados do buffer aqui
+                        dados_silencio: {
+                            pausas_detectadas: Math.floor(tempoTotal / 2.5),
+                            taxa_cadencia_estimada: "Estável"
+                        }
+                    };
+
+                    try {
+                        const resposta = await fetch(URL_BACKEND, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payloadCRS)
+                        });
+
+                        if (!resposta.ok) throw new Error(`Erro no servidor: ${resposta.status}`);
+                        
+                        const relatorioFinal = await resposta.json();
+                        
+                        output.innerHTML = `<span style='color: #10b981;'><strong>✅ RELATÓRIO RECEBIDO COM SUCESSO:</strong></span><br><br>` + 
+                                           `<pre>${JSON.stringify(relatorioFinal, null, 2)}</pre>`;
+
+                    } catch (erro) {
+                        output.innerHTML = `<span style='color: #ef4444;'><strong>❌ Falha na conexão com o Motor Local:</strong></span><br>${erro.message}<br><br><small>Verifique se o terminal do Python com o main.py continua aberto e rodando.</small>`;
+                    }
+                };
+
+                mediaRecorder.start();
+                startTime = Date.now();
+                
+                // Ajustar UI para modo gravação
+                btnIniciar.disabled = true;
+                btnEncerrar.disabled = false;
+                visualizer.classList.add('recording');
+                visualizerText.innerText = "Capturando fonação e analisando silêncios...";
+                output.innerText = "O microfone está lendo os sinais rítmicos em tempo real...";
+
+            } catch (err) {
+                output.innerHTML = `<span style='color: #ef4444;'>❌ Erro ao acessar microfone:</span> ${err.message}`;
+            }
+        });
+
+        // Encerrar e disparar processamento
+        btnEncerrar.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                // Desligar os tracks do microfone para liberar o hardware
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                btnIniciar.disabled = false;
+                btnEncerrar.disabled = true;
+                visualizer.classList.remove('recording');
+                visualizerText.innerText = "Microfone Ocioso";
+            }
+        });
+    </script>
 </body>
 </html>
