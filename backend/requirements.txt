@@ -1,21 +1,27 @@
-Flask==2.3.2
-Flask-CORS==4.0.0
-Flask-SQLAlchemy==3.0.5
-SQLAlchemy==2.0.19
-PyJWT==2.8.0
-Werkzeug==2.3.6
-python-dotenv==1.0.0
-gunicorn==21.2.0
-python-multipart==0.0.6
-librosa==0.10.0
-numpy==1.24.3
-scipy==1.11.1
-soundfile==0.12.1
-openai==0.27.8
-anthropic==0.7.1
-requests==2.31.0
-redis==5.0.0
-python-json-logger==2.0.7
-python-dateutil==2.8.2
-google-generativeai==0.4.1
-supabase==2.4.3
+# ============================================================================
+# CRS-FULL — Dependencias de producao
+# ============================================================================
+# Apenas o que o servico realmente usa em runtime.
+# Bibliotecas de audio (librosa, soundfile) e SDKs nao utilizados foram
+# removidos: o motor acustico nao roda neste repositorio, e sim no crs-core.
+# Manter peso morto aqui so aumenta o tempo de build no Render.
+# ============================================================================
+
+# --- Servidor web -----------------------------------------------------------
+Flask>=3.0,<4.0
+gunicorn>=21.2,<24.0
+
+# --- Extensoes Flask --------------------------------------------------------
+Flask-Cors>=4.0,<7.0
+Flask-SQLAlchemy>=3.1,<4.0
+
+# --- Autenticacao -----------------------------------------------------------
+PyJWT>=2.8,<3.0
+
+# --- Banco de dados ---------------------------------------------------------
+# Driver oficial do Postgres usado pelo SQLAlchemy.
+# A URL vem em formato postgresql+psycopg2:// (o main.py normaliza).
+psycopg2-binary>=2.9,<3.0
+
+# --- Utilidades -------------------------------------------------------------
+python-dotenv>=1.0,<2.0
