@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>ELAYON · Analisador Interno de Repositório</title>
-    <!-- Biblioteca para exportação limpa em PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: monospace; background: #0f172a; color: #e2e8f0; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 8px; }
@@ -14,6 +12,16 @@
         .file-block { background: #0f172a; border: 1px solid #334155; margin: 15px 0; padding: 15px; border-radius: 6px; }
         .file-path { color: #f43f5e; font-weight: bold; margin-bottom: 8px; }
         pre { white-space: pre-wrap; word-break: break-all; color: #a5b4fc; font-size: 12px; }
+
+        /* Otimização limpa para geração nativa de PDF / Impressão */
+        @media print {
+            body { background: #ffffff; color: #000000; padding: 0; }
+            .container { background: #ffffff; color: #000000; max-width: 100%; padding: 0; border: none; box-shadow: none; }
+            button { display: none; }
+            .file-block { background: #f8fafc; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+            .file-path { color: #0284c7; }
+            pre { color: #1e293b; font-size: 11px; }
+        }
     </style>
 </head>
 <body>
@@ -21,7 +29,7 @@
 <div class="container" id="relatorio-container">
     <h1>ELAYON · Auditoria e Mapeamento do Repositório: crs-full</h1>
     <p>Gerando visão linear unificada para consumo analítico e documentação de arquitetura.</p>
-    <button onclick="gerarPDF()">Exportar Relatório Completo em PDF</button>
+    <button onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
     
     <div id="conteudo-arquivos">
         <p style="color: #fbbf24;">Carregando e mapeando estrutura de pastas (backend, docs, frontend)...</p>
@@ -29,23 +37,18 @@
 </div>
 
 <script>
-    // Lista mapeada com base na estrutura real do crs-full verificada no cockpit
     const arquivosRepositorio = [
-        // Backend
         "backend/main.py",
         "backend/models.py",
         "backend/requirements.txt",
         "backend/Dockerfile",
         "backend/.env.example",
-        // Docs
         "docs/FUNDAMENTOS-CRS.md",
-        // Frontend
         "frontend/index.html",
         "frontend/gravacao.html",
         "frontend/relatorio.html",
         "frontend/package.json",
         "frontend/Dockerfile",
-        // Raiz
         "README.md",
         "SETUP.md"
     ];
@@ -54,7 +57,6 @@
         const container = document.getElementById("conteudo-arquivos");
         container.innerHTML = "";
 
-        // URL base do repositório no GitHub (Branch main)
         const baseUrl = "https://raw.githubusercontent.com/paulorobertoxavierjunior-create/crs-full/main/";
 
         for (const caminho of arquivosRepositorio) {
@@ -77,7 +79,7 @@
                     const texto = await resposta.text();
                     pre.innerText = texto;
                 } else {
-                    pre.innerText = "[Erro: Arquivo não encontrado ou acesso restrito]";
+                    pre.innerText = "[Erro: Arquivo não encontrado]";
                 }
             } catch (err) {
                 pre.innerText = "[Erro de conexão ao carregar arquivo]";
@@ -85,19 +87,6 @@
         }
     }
 
-    function gerarPDF() {
-        const elemento = document.getElementById("relatorio-container");
-        const opcoes = {
-            margin:       10,
-            filename:     'ELAYON_CRS_FULL_Documentacao_Completa.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().from(elemento).set(opcoes).save();
-    }
-
-    // Executa o mapeamento ao carregar
     carregarRepositorio();
 </script>
 
